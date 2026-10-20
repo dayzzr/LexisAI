@@ -3,289 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI - IDE Python Mobile</title>
-    <!-- Tailwind CSS para estilização corporativa/minimalista -->
+    <title>Lexis AI — IDE Python</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Skulpt (Interpretador Python para navegador) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } }
+        }
+    </script>
+
+    <!-- CodeMirror (Editor) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/theme/dracula.css">
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/mode/python/python.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/addon/edit/closebrackets.js"></script>
+
+    <!-- Skulpt (Motor Python) -->
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; font-family: ui-sans-serif, system-ui, sans-serif; }
-        textarea { tab-size: 4; }
+        .CodeMirror { height: 100%; min-height: 350px; font-family: 'SF Mono', monospace; font-size: 15px; border-radius: 0 0 1rem 1rem; }
+        * { transition: background-color 0.3s ease, border-color 0.3s ease; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden">
+<body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
 
-    <!-- BARRA DE NAVEGAÇÃO SUPERIOR -->
-    <header class="bg-[#161b22] border-b border-[#30363d] px-4 py-2.5 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <span class="text-lg font-semibold text-white tracking-wide">Lexis AI</span>
-            <span class="text-xs bg-[#30363d] text-[#8b949e] px-2 py-0.5 rounded-full font-mono">v1.2 PWA</span>
+    <!-- Header -->
+    <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
+            <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
         </div>
-        
-        <div class="flex items-center space-x-2">
-            <button onclick="abrirConfiguracoes()" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium transition">
-                ⚙️ Configurar API
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="toggleTheme()" class="p-2 mr-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+                <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
-            <button onclick="alternarAbaIA()" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-gray-200 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                Assistente IA
+            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
+                <span>Parar</span>
             </button>
-            <button onclick="limparEditor()" class="bg-[#21262d] hover:bg-[#30363d] text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium transition">
-                Limpar
-            </button>
-            <button onclick="executarCodigo()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition shadow-sm">
-                Executar
+            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
+                <span>Executar</span>
             </button>
         </div>
     </header>
 
-    <!-- ÁREA PRINCIPAL -->
-    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+    <!-- Workspace -->
+    <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
         
-        <!-- PAINEL ESQUERDO: EDITOR DE CÓDIGO -->
-        <section class="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-[#30363d] bg-[#0d1117]">
-            <div class="bg-[#161b22] px-4 py-1.5 text-xs text-[#8b949e] font-mono border-b border-[#30363d] flex justify-between items-center">
-                <span>editor.py</span>
-                <span class="text-[10px] text-green-400">Skulpt Engine</span>
-            </div>
-            <textarea id="codigo-editor" class="flex-1 bg-[#0d1117] text-[#f0f6fc] p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed" spellcheck="false" placeholder="# Escreva seu código Python aqui...">import turtle
-import random
-import time
-
-print("=====================================================")
-print(" LEXIS AI: SISTEMA PRONTO")
-print("=====================================================")
-
-t = turtle.Turtle()
-t.speed(0)
-tela = turtle.Screen()
-tela.bgcolor("#1a1a1c")
-
-for i in range(50):
-    t.forward(i * 3)
-    t.right(90)
-
-print("-> Inicialização concluída com sucesso!")</textarea>
-        </section>
-
-        <!-- PAINEL DIREITO: CONSOLE E SAÍDA GRÁFICA -->
-        <section class="w-full md:w-1/2 flex flex-col bg-[#0b0f14]">
-            <div class="h-1/2 flex flex-col border-b border-[#30363d]">
-                <div class="bg-[#161b22] px-4 py-1.5 text-xs text-[#8b949e] font-mono border-b border-[#30363d] flex justify-between">
-                    <span>TERMINAL</span>
-                    <button onclick="limparTerminal()" class="hover:text-white transition">Limpar</button>
+        <!-- Editor -->
+        <section class="flex-1 flex flex-col min-h-[400px] bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
+            <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
+                <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
+                <div class="flex items-center gap-2 pb-1 shrink-0">
+                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-bold">+ Novo</button>
+                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-bold">Limpar</button>
+                    <button onclick="saveFile()" class="p-1.5 text-blue-500 hover:bg-gray-300 text-xs font-bold">Salvar .py</button>
                 </div>
-                <pre id="terminal-saida" class="flex-1 p-4 font-mono text-xs text-green-400 overflow-y-auto whitespace-pre-wrap select-all">~ Sistema inicializado e pronto para compilar.</pre>
             </div>
-
-            <div class="h-1/2 flex flex-col bg-white relative">
-                <div class="absolute top-2 left-2 z-10 bg-black/60 text-white px-2 py-0.5 rounded text-[10px] font-mono pointer-events-none">
-                    Canvas Gráfico
-                </div>
-                <div id="turtle-canvas" class="w-full h-full flex items-center justify-center overflow-hidden"></div>
+            <div class="flex-1 relative"><textarea id="code-editor"></textarea></div>
+            <!-- Atalhos Mobile -->
+            <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t dark:border-apple-borderDark p-2 flex items-center gap-2 overflow-x-auto rounded-b-2xl">
+                <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">Tab</button>
+                <button onclick="insertCode(':')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">:</button>
+                <button onclick="insertCode('=')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">=</button>
+                <button onclick="insertCode('()')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">( )</button>
+                <button onclick="insertCode('[]')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">[ ]</button>
+                <button onclick="insertCode('{}')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">{ }</button>
             </div>
         </section>
 
-        <!-- MODAL DE CONFIGURAÇÃO DA API (OCULTO POR PADRÃO) -->
-        <div id="modal-config" class="hidden absolute inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-            <div class="bg-[#161b22] border border-[#30363d] rounded-xl p-6 w-full max-w-md shadow-2xl">
-                <h3 class="text-white font-semibold text-lg mb-2">Configurar Chave de API</h3>
-                <p class="text-xs text-gray-400 mb-4">Insira sua chave do Google Gemini. Ela será salva de forma segura apenas no armazenamento local do seu dispositivo.</p>
-                <input type="password" id="input-api-key" placeholder="Cole sua chave aqui (AIzaSy...)" 
-                       class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono mb-4">
-                <div class="flex justify-end gap-2">
-                    <button onclick="fecharConfiguracoes()" class="bg-[#21262d] text-gray-300 px-4 py-2 rounded-lg text-sm">Cancelar</button>
-                    <button onclick="salvarApiKey()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Salvar Chave</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- PAINEL DA ABA DE IA -->
-        <div id="painel-ia" class="hidden absolute top-0 right-0 w-full md:w-[420px] h-full bg-[#161b22] border-l border-[#30363d] flex-col z-30 shadow-2xl">
-            <div class="bg-[#21262d] px-4 py-3 border-b border-[#30363d] flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <h3 class="font-semibold text-white text-sm">Assistente Técnico (Gemini Flash)</h3>
-                </div>
-                <button onclick="alternarAbaIA()" class="text-gray-400 hover:text-white text-lg px-2">&times;</button>
+        <!-- Console / Turtle -->
+        <section class="flex-1 flex flex-col min-h-[400px] bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
+            <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
+                <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal</span>
+                <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
             
-            <div id="chat-mensagens" class="flex-1 p-4 overflow-y-auto space-y-4 text-sm">
-                <div class="bg-[#21262d] text-gray-200 p-3 rounded-lg border border-[#30363d]">
-                    Ambiente de assistência técnica ativado. Como posso auxiliar na lógica ou estruturação do seu código Python?
+            <!-- Agora com overflow-hidden para conter o terminal e a tela branca em Split Screen -->
+            <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
+                <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">~ lexis-ai-engine started...</div>
+                
+                <!-- A tela branca agora é relativa e ocupa 50% do espaço só quando ativada, sem tampar o terminal -->
+                <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
+                    <div id="mycanvas"></div>
                 </div>
             </div>
-            
-            <div class="p-3 bg-[#161b22] border-t border-[#30363d] flex gap-2 items-center">
-                <input type="text" id="chat-input" placeholder="Insira sua dúvida técnica..." 
-                       class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
-                       onkeypress="if(event.key === 'Enter') enviarParaGemini()">
-                <button onclick="enviarParaGemini()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    Enviar
-                </button>
-            </div>
-        </div>
-
+        </section>
     </main>
 
-    <!-- SCRIPTS DE EXECUÇÃO E ASSISTÊNCIA -->
     <script>
-        function outf(text) {
-            var mypre = document.getElementById("terminal-saida");
-            mypre.innerHTML += text;
-            mypre.scrollTop = mypre.scrollHeight;
+        window.onerror = function(msg, url, line) {
+            document.getElementById("output").innerHTML += `\n[Erro do Sistema]: ${msg}\n`;
+        };
+
+        let tabs = [{ id: 1, name: 'main.py', content: '# Digite o código aqui\n' }];
+        let activeTabId = 1;
+
+        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+            mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
+        });
+
+        editor.on("change", function() {
+            let current = tabs.find(t => t.id === activeTabId);
+            if (current) current.content = editor.getValue();
+        });
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = '';
+            tabs.forEach(tab => {
+                let isActive = tab.id === activeTabId;
+                let tabEl = document.createElement('div');
+                tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 border-transparent'}`;
+                tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>${tabs.length > 1 ? `<span onclick="closeTab(event, ${tab.id})" class="text-red-500 ml-2 font-bold">×</span>` : ''}`;
+                container.appendChild(tabEl);
+            });
         }
 
+        function switchTab(id) { activeTabId = id; let tab = tabs.find(t => t.id === id); if (tab) { editor.setValue(tab.content); renderTabs(); } }
+        function addNewTab() { let newId = Date.now(); tabs.push({ id: newId, name: `script_${tabs.length + 1}.py`, content: '# Novo código\n' }); switchTab(newId); }
+        function closeTab(event, id) { event.stopPropagation(); if (tabs.length <= 1) return; tabs = tabs.filter(t => t.id !== id); if (activeTabId === id) switchTab(tabs[0].id); else renderTabs(); }
+        function clearEditor() { if (confirm("Limpar código?")) editor.setValue(""); }
+        function saveFile() { let current = tabs.find(t => t.id === activeTabId); let blob = new Blob([editor.getValue()], { type: "text/plain;charset=utf-8" }); let url = URL.createObjectURL(blob); let a = document.createElement('a'); a.href = url; a.download = current ? current.name : "script.py"; a.click(); URL.revokeObjectURL(url); }
+        function insertCode(text) { let doc = editor.getDoc(); doc.replaceRange(text, doc.getCursor()); editor.focus(); }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-icon-sun').classList.toggle('hidden');
+            document.getElementById('theme-icon-moon').classList.toggle('hidden');
+        }
+
+        let executionCounter = 0;
+        function outf(text) { 
+            let output = document.getElementById("output"); 
+            output.innerHTML += text; 
+            output.scrollTop = output.scrollHeight; 
+        }
+        
         function builtinRead(x) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-                raise("File not found: '" + x + "'");
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+                throw "Erro: Módulo '" + x + "' não encontrado.";
+            }
             return Sk.builtinFiles["files"][x];
         }
 
-        function executarCodigo() {
-            var prog = document.getElementById("codigo-editor").value;
-            var mypre = document.getElementById("terminal-saida");
-            mypre.innerHTML = "~ processando...\n";
+        function runPython() {
+            let output = document.getElementById("output");
+            let turtleBox = document.getElementById("turtle-container");
+            output.innerHTML = "~ processando...\n";
+            turtleBox.classList.add("hidden");
             
-            document.getElementById("turtle-canvas").innerHTML = '';
+            let prog = editor.getValue();
+            let currentExecutionId = ++executionCounter;
 
-            Sk.pre("terminal-saida");
+            // Se for desenhar geometria, divide a tela
+            if (prog.includes("import turtle")) {
+                turtleBox.classList.remove("hidden");
+            }
+
+            // CORREÇÃO CRÍTICA DO TURTLE: Garantir que o Skulpt tenha onde desenhar ANTES de rodar o script
+            Sk.TurtleGraphics = Sk.TurtleGraphics || {};
+            Sk.TurtleGraphics.target = 'mycanvas';
+
+            Sk.pre = "output";
             Sk.configure({
                 output: outf,
-                read: builtinRead
+                read: builtinRead,
+                inputfun: function(promptText) {
+                    return new Promise(function(resolve, reject) {
+                        if (currentExecutionId !== executionCounter) return reject("Stop");
+                        if (promptText) outf(promptText);
+                        
+                        let inputWrapper = document.createElement("div");
+                        inputWrapper.className = "flex w-full mt-1";
+                        let inputLine = document.createElement("input");
+                        inputLine.type = "text";
+                        inputLine.className = "bg-[#2A2A2A] text-white border border-apple-blue rounded px-2 py-1 font-mono text-[15px] outline-none flex-1 min-w-[150px]";
+                        
+                        inputWrapper.appendChild(inputLine);
+                        output.appendChild(inputWrapper);
+                        inputLine.focus();
+
+                        inputLine.addEventListener("keydown", function(e) {
+                            if (e.key === "Enter") {
+                                let val = inputLine.value; 
+                                inputWrapper.remove(); 
+                                outf(val + "\n"); 
+                                resolve(val);
+                            }
+                        });
+                    });
+                },
+                inputfunTakesPrompt: true
+            });
+            
+            var myPromise = Sk.misceval.asyncToPromise(function() {
+                return Sk.importMainWithBody("<stdin>", false, prog, true);
             });
 
-            (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'turtle-canvas';
-
-            var myPromise = Sk.importMainWithBody("<stdin>", false, prog, true);
             myPromise.then(function(mod) {
-                mypre.innerHTML += "\n\n[Finalizado]";
+                outf("\n[Finalizado]");
             }, function(err) {
-                mypre.innerHTML += "\n[Erro do Python]: " + err.toString();
+                if (currentExecutionId === executionCounter) outf("\n[Erro do Python]: " + err.toString());
             });
         }
 
-        function limparTerminal() {
-            document.getElementById("terminal-saida").innerHTML = "~ Terminal limpo.";
-            document.getElementById("turtle-canvas").innerHTML = '';
+        function stopExecution() {
+            executionCounter++;
+            document.getElementById("output").innerHTML += "\n\n[Interrompido]";
         }
 
-        function limparEditor() {
-            document.getElementById("codigo-editor").value = "";
+        function clearConsole() { 
+            document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; 
+            document.getElementById("turtle-container").classList.add("hidden");
         }
-
-        function alternarAbaIA() {
-            const painel = document.getElementById('painel-ia');
-            if (painel.classList.contains('hidden')) {
-                painel.classList.remove('hidden');
-                painel.classList.add('flex');
-            } else {
-                painel.classList.remove('flex');
-                painel.classList.add('hidden');
-            }
-        }
-
-        // --- GERENCIAMENTO DE CONFIGURAÇÃO DA API NO BROWSER ---
-        function abrirConfiguracoes() {
-            document.getElementById('modal-config').classList.remove('hidden');
-            const savedKey = localStorage.getItem('gemini_api_key') || '';
-            document.getElementById('input-api-key').value = savedKey;
-        }
-
-        function fecharConfiguracoes() {
-            document.getElementById('modal-config').classList.add('hidden');
-        }
-
-        function salvarApiKey() {
-            const key = document.getElementById('input-api-key').value.trim();
-            if (!key) {
-                alert("Insira uma chave válida.");
-                return;
-            }
-            localStorage.setItem('gemini_api_key', key);
-            alert("Chave salva com sucesso no seu dispositivo!");
-            fecharConfiguracoes();
-        }
-
-        async function enviarParaGemini() {
-            const input = document.getElementById('chat-input');
-            const chatDiv = document.getElementById('chat-mensagens');
-            const textoUsuario = input.value.trim();
-
-            if (!textoUsuario) return;
-
-            // Busca a chave salva privadamente no dispositivo do usuário
-            const apiKey = localStorage.getItem('gemini_api_key');
-
-            if (!apiKey) {
-                abrirConfiguracoes();
-                alert("Por favor, configure sua chave de API do Gemini clicando em '⚙️ Configurar API'.");
-                return;
-            }
-
-            chatDiv.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="bg-blue-900/50 text-white p-3 rounded-lg max-w-[85%] text-sm">
-                        ${textoUsuario}
-                    </div>
-                </div>
-            `;
-            input.value = '';
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-
-            const idCarregando = 'loading-' + Date.now();
-            chatDiv.innerHTML += `
-                <div id="${idCarregando}" class="flex justify-start">
-                    <div class="bg-[#21262d] text-gray-400 p-3 rounded-lg text-sm italic">
-                        Processando resposta...
-                    </div>
-                </div>
-            `;
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                
-                const resposta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: "Você é um assistente técnico especialista em Python, Skulpt e Turtle para o ambiente Lexis AI. Forneça respostas diretas e blocos de código precisos. Pergunta: " + textoUsuario
-                            }]
-                        }]
-                    })
-                });
-
-                const dados = await resposta.json();
-                document.getElementById(idCarregando).remove();
-
-                if (dados.candidates && dados.candidates[0].content) {
-                    const respostaTexto = dados.candidates[0].content.parts[0].text;
-                    
-                    chatDiv.innerHTML += `
-                        <div class="flex justify-start">
-                            <div class="bg-[#21262d] text-gray-200 p-3 rounded-lg max-w-[90%] text-sm font-mono whitespace-pre-wrap border border-[#30363d]">
-                                ${respostaTexto}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    throw new Error("Erro de retorno da API");
-                }
-
-            } catch (erro) {
-                document.getElementById(idCarregando).remove();
-                chatDiv.innerHTML += `
-                    <div class="flex justify-start">
-                        <div class="bg-red-900/30 text-red-300 p-3 rounded-lg text-sm">
-                            Falha na comunicação com o serviço de IA. Verifique sua chave nas configurações.
-                        </div>
-                    </div>
-                `;
-            }
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-        }
+        renderTabs();
+        editor.setValue(tabs[0].content);
     </script>
 </body>
 </html>
