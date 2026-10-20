@@ -141,7 +141,7 @@
 
     </main>
 
-    <!-- Script de Gestão e Execução -->
+    <!-- Script de Gestão e Execução Corrigido para GitHub Pages -->
     <script>
         let tabs = [
             { id: 1, name: 'main.py', content: '# Teste do Lexis AI\nnome = input("Digite seu nome: ")\nprint(f"Olá, {nome}! Sistema pronto.")' }
@@ -241,9 +241,11 @@
             output.scrollTop = output.scrollHeight;
         }
 
+        // Configuração robusta para o ambiente web (GitHub Pages)
         function builtinRead(x) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-                throw "File not found: '" + x + "'";
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+                throw "Arquivo ou biblioteca não encontrada: '" + x + "'";
+            }
             return Sk.builtinFiles["files"][x];
         }
 
