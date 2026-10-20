@@ -21,7 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/mode/python/python.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/addon/edit/closebrackets.js"></script>
 
-    <!-- Skulpt (Motor Python - Servidor Estável jsDelivr) -->
+    <!-- Skulpt (Motor Python) -->
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 
@@ -35,7 +35,6 @@
     <!-- Header -->
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <!-- Logo - Se der erro de nome, ele mostra um texto alternativo em vez de quebrar a tela -->
             <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
         </div>
@@ -93,9 +92,8 @@
     </main>
 
     <script>
-        // Capturador Global de Erros - Se a internet bloquear algo, ele avisa!
         window.onerror = function(msg, url, line) {
-            document.getElementById("output").innerHTML += `\n[Erro do Sistema]: Falha ao carregar motor Python. Tente atualizar a página. (${msg})\n`;
+            document.getElementById("output").innerHTML += `\n[Erro do Sistema]: ${msg}\n`;
         };
 
         let tabs = [{ id: 1, name: 'main.py', content: 'print("Testando o Lexis AI!")\nnome = input("Qual o seu nome? ")\nprint("Olá, " + nome + "!")' }];
@@ -140,7 +138,7 @@
         
         function builtinRead(x) {
             if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-                throw "Erro: Módulo ou Biblioteca '" + x + "' não encontrada no navegador.";
+                throw "Erro: Módulo '" + x + "' não encontrado.";
             }
             return Sk.builtinFiles["files"][x];
         }
@@ -190,7 +188,12 @@
 
             (Sk.TurtleGraphics ? Sk.TurtleGraphics['target'] = 'mycanvas' : null);
             
-            Sk.importMainWithBody("<stdin>", false, prog, true).then(function(mod) {
+            // CORREÇÃO: Utilização do Sk.misceval.asyncToPromise para suportar o input corretamente
+            var myPromise = Sk.misceval.asyncToPromise(function() {
+                return Sk.importMainWithBody("<stdin>", false, prog, true);
+            });
+
+            myPromise.then(function(mod) {
                 outf("\n[Finalizado]");
             }, function(err) {
                 if (currentExecutionId === executionCounter) outf("\n[Erro do Python]: " + err.toString());
