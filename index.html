@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lexis AI</title>
-    
+    <title>Lexis AI — IDE Python</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,20 +12,16 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Segoe UI"', 'Roboto', 'sans-serif'],
-                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
-                    },
                     colors: {
                         apple: {
-                            blue: '#007AFF',
-                            darkBlue: '#0A84FF',
                             bgLight: '#F2F2F7',
+                            bgDark: '#1C1C1E',
                             surfaceLight: '#FFFFFF',
-                            bgDark: '#000000',
-                            surfaceDark: '#1C1C1E',
+                            surfaceDark: '#2C2C2E',
                             borderLight: '#E5E5EA',
-                            borderDark: '#38383A'
+                            borderDark: '#38383A',
+                            blue: '#007AFF',
+                            darkBlue: '#0A84FF'
                         }
                     }
                 }
@@ -33,171 +29,217 @@
         }
     </script>
 
-    <!-- CodeMirror (Editor de Código) CSS e JS -->
+    <!-- CodeMirror -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
 
-    <!-- Skulpt (Motor Python) -->
-    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
-    
+    <!-- Skulpt (Python Engine + Turtle Graphics) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"></script>
+
     <style>
-        body { 
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        /* Ajustes do CodeMirror para preencher o contêiner e adaptar-se ao design */
         .CodeMirror {
-            height: 100% !important;
-            font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, monospace !important;
-            font-size: 15px;
+            height: 100%;
+            font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+            font-size: 14px;
             border-radius: 0 0 1rem 1rem;
-            padding-top: 8px;
-            padding-bottom: 8px;
         }
-        
-        /* Personalizando as calhas (onde ficam os números) no tema claro */
-        .cm-s-default .CodeMirror-gutters {
-            background-color: #f8f8f8;
-            border-right: 1px solid #E5E5EA;
-        }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { 
-            background-color: rgba(150, 150, 150, 0.4); 
-            border-radius: 10px; 
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        #terminal-output {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
     </style>
 </head>
-
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 h-screen w-screen flex flex-col overflow-hidden">
-    
-    <header class="bg-white/80 dark:bg-apple-surfaceDark/80 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark p-3 px-5 flex justify-between items-center shrink-0 z-10">
+
+    <!-- Header -->
+    <header class="bg-white/80 dark:bg-apple-surfaceDark/80 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex items-center justify-between shrink-0 z-20">
         <div class="flex items-center gap-3">
-            <!-- Seu Logotipo Oficial -->
+            <!-- Logo com Inversão Automática no Dark Mode -->
             <img src="image.png" alt="Lexis AI Logo" class="w-9 h-9 object-contain drop-shadow-sm rounded-lg dark:invert">
             <h1 class="text-xl font-semibold tracking-tight">Lexis AI</h1>
         </div>
-        
-        <div class="flex items-center gap-4">
-            <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
-                <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                <svg id="theme-icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                </svg>
+
+        <div class="flex items-center gap-3">
+            <!-- Botão Tema -->
+            <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300">
+                <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+                <svg id="theme-icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
 
-            <button id="run-btn" onclick="runPython()" class="bg-apple-blue dark:bg-apple-darkBlue hover:opacity-90 active:scale-95 text-white font-medium py-1.5 px-5 rounded-full shadow-sm transition-all flex items-center gap-2 text-sm sm:text-base touch-manipulation">
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                Run
+            <!-- Botão Parar -->
+            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-2 rounded-xl font-medium text-sm flex items-center gap-1.5 shadow-sm active:scale-95">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+                <span>Parar</span>
+            </button>
+
+            <!-- Botão Executar -->
+            <button id="run-btn" onclick="runPython()" class="bg-apple-blue dark:bg-apple-darkBlue hover:opacity-90 text-white px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 shadow-sm active:scale-95">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>Executar</span>
             </button>
         </div>
     </header>
 
+    <!-- Main Workspace -->
     <main class="flex-1 flex flex-col md:flex-row w-full h-full p-4 gap-4 overflow-hidden">
         
-        <!-- Editor Section -->
-        <section class="flex-1 flex flex-col bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-sm overflow-hidden h-1/2 md:h-full">
-            <div class="bg-gray-50/80 dark:bg-black/30 text-gray-500 dark:text-gray-400 text-[11px] font-semibold py-2 px-4 uppercase tracking-widest flex justify-between items-center border-b border-apple-borderLight dark:border-apple-borderDark shrink-0 z-10">
-                <span>Editor</span>
-                <span class="lowercase font-mono normal-case">main.py</span>
-            </div>
+        <!-- Seção do Editor + Abas -->
+        <section class="flex-1 flex flex-col bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-sm overflow-hidden">
             
-            <!-- CodeMirror irá substituir esta textarea, mas ela serve de base -->
-            <div class="flex-1 overflow-hidden relative">
-                <textarea id="python-code">
-# Solicita os dados de entrada ao usuário
-nome = input("Digite o nome da pessoa: ")
-idade = int(input("Digite a idade: "))
-sexo = input("Digite o sexo (F ou M): ")
+            <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between shrink-0">
+                <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
+                <div class="flex items-center gap-1 pb-1">
+                    <button onclick="addNewTab()" title="Nova Aba" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold">+ Novo</button>
+                    <button onclick="clearEditor()" title="Limpar Código" class="p-1.5 text-gray-500 hover:text-red-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                    <button onclick="saveFile()" title="Salvar .py" class="p-1.5 text-gray-500 hover:text-apple-blue rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </button>
+                </div>
+            </div>
 
-sexo = sexo.strip().upper()
+            <div class="flex-1 relative overflow-hidden">
+                <textarea id="code-editor"></textarea>
+            </div>
 
-if sexo == 'F':
-    if idade >= 21 and idade <= 34:
-        print(f"\nResultado: {nome} foi ACEITA para o serviço militar.")
-    else:
-        print(f"\nResultado: {nome} foi RECUSADA.")
-elif sexo == 'M':
-    if idade >= 18 and idade <= 39:
-        print(f"\nResultado: {nome} foi ACEITO para o serviço militar.")
-    else:
-        print(f"\nResultado: {nome} foi RECUSADO.")
-else:
-    print("\nErro: Sexo inválido.")
-</textarea>
+            <!-- Barra de Atalhos Mobile -->
+            <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t border-apple-borderLight dark:border-apple-borderDark px-2 py-1.5 flex items-center gap-1.5 overflow-x-auto shrink-0">
+                <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">Tab</button>
+                <button onclick="insertCode(':')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">:</button>
+                <button onclick="insertCode('=')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">=</button>
+                <button onclick="insertCode('()')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">( )</button>
+                <button onclick="insertCode('[]')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">[ ]</button>
+                <button onclick="insertCode('{}')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">{ }</button>
+                <button onclick="insertCode('\"\"')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2.5 py-1 rounded-md text-xs font-mono shadow-sm">" "</button>
+                <button onclick="insertCode('input()')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2 py-1 rounded-md text-xs font-mono shadow-sm text-apple-blue">input()</button>
+                <button onclick="insertCode('print()')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2 py-1 rounded-md text-xs font-mono shadow-sm text-apple-blue">print()</button>
+                <button onclick="insertCode('if ')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2 py-1 rounded-md text-xs font-mono shadow-sm text-purple-500">if</button>
+                <button onclick="insertCode('while ')" class="bg-white dark:bg-apple-surfaceDark border border-apple-borderLight dark:border-apple-borderDark px-2 py-1 rounded-md text-xs font-mono shadow-sm text-purple-500">while</button>
             </div>
         </section>
 
-        <!-- Terminal Section -->
-        <section class="flex-1 flex flex-col bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-sm overflow-hidden h-1/2 md:h-full">
-            <div class="bg-gray-50/80 dark:bg-black/30 text-gray-500 dark:text-gray-400 text-[11px] font-semibold py-2 px-4 uppercase tracking-widest shrink-0 flex items-center justify-between border-b border-apple-borderLight dark:border-apple-borderDark">
-                <span>Console</span>
-                <button onclick="document.getElementById('terminal-output').innerHTML = ''" class="hover:text-apple-blue transition-colors">Limpar</button>
+        <!-- Seção do Console & Turtle Canvas -->
+        <section class="flex-1 flex flex-col bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-sm overflow-hidden">
+            <div class="bg-[#2D2D2D] px-4 py-2 border-b border-[#3E3E3E] flex items-center justify-between shrink-0">
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wider">Console / Gráficos</span>
+                <button onclick="clearConsole()" class="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-md hover:bg-[#3D3D3D]">Limpar</button>
             </div>
             
-            <div id="terminal-container" class="flex-1 p-4 overflow-y-auto font-mono text-[14px] leading-relaxed text-gray-700 dark:text-gray-300">
-                <div id="terminal-output"></div>
+            <div class="flex-1 relative flex flex-col overflow-hidden">
+                <!-- Terminal de Texto -->
+                <div id="output" class="flex-1 p-4 font-mono text-sm text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text">
+~ lexis-ai-engine started...
+                </div>
+                <!-- Canvas para Caneta Virtual (Turtle Graphics) -->
+                <div id="turtle-container" class="hidden absolute inset-0 bg-white flex items-center justify-center p-2">
+                    <div id="mycanvas"></div>
+                </div>
             </div>
         </section>
-        
+
     </main>
 
+    <!-- Script de Gestão e Execução -->
     <script>
-        // Inicializa o CodeMirror
-        var editor = CodeMirror.fromTextArea(document.getElementById("python-code"), {
+        let tabs = [
+            { id: 1, name: 'main.py', content: '# Teste do Lexis AI\nnome = input("Digite seu nome: ")\nprint(f"Olá, {nome}! Sistema pronto.")' }
+        ];
+        let activeTabId = 1;
+
+        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "python",
+            theme: "dracula",
             lineNumbers: true,
+            autoCloseBrackets: true,
+            tabSize: 4,
             indentUnit: 4,
-            matchBrackets: true,
-            theme: document.documentElement.classList.contains('dark') ? 'dracula' : 'default'
+            lineWrapping: true
         });
 
-        function toggleTheme() {
-            const htmlTag = document.documentElement;
-            const sunIcon = document.getElementById('theme-icon-sun');
-            const moonIcon = document.getElementById('theme-icon-moon');
-            
-            if (htmlTag.classList.contains('dark')) {
-                htmlTag.classList.remove('dark');
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-                editor.setOption("theme", "default"); // Muda o editor para tema claro
-            } else {
-                htmlTag.classList.add('dark');
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-                editor.setOption("theme", "dracula"); // Muda o editor para tema escuro
+        editor.on("change", function() {
+            let current = tabs.find(t => t.id === activeTabId);
+            if (current) current.content = editor.getValue();
+        });
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = '';
+            tabs.forEach(tab => {
+                let isActive = tab.id === activeTabId;
+                let tabEl = document.createElement('div');
+                tabEl.className = `flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 border-transparent'}`;
+                tabEl.innerHTML = `
+                    <span onclick="switchTab(${tab.id})">${tab.name}</span>
+                    ${tabs.length > 1 ? `<span onclick="closeTab(event, ${tab.id})" class="hover:text-red-500 ml-1">×</span>` : ''}
+                `;
+                container.appendChild(tabEl);
+            });
+        }
+
+        function switchTab(id) {
+            activeTabId = id;
+            let tab = tabs.find(t => t.id === id);
+            if (tab) {
+                editor.setValue(tab.content);
+                renderTabs();
             }
         }
 
-        window.onload = function() {
-            const htmlTag = document.documentElement;
+        function addNewTab() {
+            let newId = Date.now();
+            let newName = `script_${tabs.length + 1}.py`;
+            tabs.push({ id: newId, name: newName, content: '# Novo arquivo Python\n' });
+            switchTab(newId);
+        }
+
+        function closeTab(event, id) {
+            event.stopPropagation();
+            if (tabs.length <= 1) return;
+            tabs = tabs.filter(t => t.id !== id);
+            if (activeTabId === id) switchTab(tabs[0].id);
+            else renderTabs();
+        }
+
+        function clearEditor() {
+            if (confirm("Deseja limpar todo o código desta aba?")) editor.setValue("");
+        }
+
+        function saveFile() {
+            let current = tabs.find(t => t.id === activeTabId);
+            let blob = new Blob([editor.getValue()], { type: "text/plain;charset=utf-8" });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = current ? current.name : "script.py";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function insertCode(text) {
+            let doc = editor.getDoc();
+            let cursor = doc.getCursor();
+            doc.replaceRange(text, cursor);
+            editor.focus();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
             const sunIcon = document.getElementById('theme-icon-sun');
             const moonIcon = document.getElementById('theme-icon-moon');
-            if (htmlTag.classList.contains('dark')) {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            }
-            // Atualiza o tamanho do editor para preencher o espaço após carregamento
-            setTimeout(() => editor.refresh(), 100);
-        };
+            html.classList.toggle('dark');
+            sunIcon.classList.toggle('hidden');
+            moonIcon.classList.toggle('hidden');
+        }
+
+        let executionCounter = 0;
+
+        function outf(text) {
+            let output = document.getElementById("output");
+            output.innerHTML += text;
+            output.scrollTop = output.scrollHeight;
+        }
 
         function builtinRead(x) {
             if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
@@ -206,93 +248,73 @@ else:
         }
 
         function runPython() {
-            // Pega o código do CodeMirror, não mais do textarea nativo
-            var code = editor.getValue(); 
-            var terminalOutput = document.getElementById("terminal-output");
-            var terminalContainer = document.getElementById("terminal-container");
-            var runBtn = document.getElementById("run-btn");
+            let output = document.getElementById("output");
+            let turtleBox = document.getElementById("turtle-container");
+            output.innerHTML = "~ lexis-ai-engine running...\n";
+            turtleBox.classList.add("hidden");
             
-            terminalOutput.innerHTML = '<span class="text-apple-blue dark:text-apple-darkBlue opacity-70">~ Lexis AI Engine started...</span>\n\n';
-            runBtn.disabled = true;
-            runBtn.classList.add("opacity-50");
-            
+            let prog = editor.getValue();
+            let currentExecutionId = ++executionCounter;
+
+            if (prog.includes("import turtle")) {
+                turtleBox.classList.remove("hidden");
+            }
+
+            Sk.pre = "output";
             Sk.configure({
-                output: function(text) {
-                    const textSpan = document.createElement("span");
-                    textSpan.textContent = text;
-                    terminalOutput.appendChild(textSpan);
-                    terminalContainer.scrollTop = terminalContainer.scrollHeight;
-                },
+                output: outf,
                 read: builtinRead,
-                
                 inputfun: function(promptText) {
                     return new Promise(function(resolve, reject) {
-                        const promptSpan = document.createElement("span");
-                        promptSpan.textContent = promptText;
-                        terminalOutput.appendChild(promptSpan);
-                        
-                        const inlineInput = document.createElement("input");
-                        inlineInput.type = "text";
-                        inlineInput.setAttribute("autocomplete", "off");
-                        inlineInput.setAttribute("autocorrect", "off");
-                        inlineInput.setAttribute("autocapitalize", "off");
-                        inlineInput.setAttribute("spellcheck", "false");
-                        
-                        inlineInput.className = "bg-transparent text-apple-blue dark:text-emerald-400 outline-none border-none flex-1 min-w-[50px] inline-block font-mono text-[14px] p-0 m-0 ml-1";
-                        
-                        terminalOutput.appendChild(inlineInput);
-                        inlineInput.focus();
-                        terminalContainer.scrollTop = terminalContainer.scrollHeight;
-                        
-                        inlineInput.addEventListener("keydown", function(e) {
+                        if (currentExecutionId !== executionCounter) {
+                            reject("Execution stopped.");
+                            return;
+                        }
+                        if (promptText) outf(promptText);
+                        let inputLine = document.createElement("input");
+                        inputLine.type = "text";
+                        inputLine.className = "bg-[#2A2A2A] text-white border border-apple-blue rounded px-2 py-0.5 ml-2 font-mono text-sm outline-none";
+                        output.appendChild(inputLine);
+                        inputLine.focus();
+
+                        inputLine.addEventListener("keydown", function(e) {
                             if (e.key === "Enter") {
-                                e.preventDefault();
-                                const inputValue = inlineInput.value;
-                                terminalOutput.removeChild(inlineInput);
-                                
-                                const answerSpan = document.createElement("span");
-                                answerSpan.className = "text-apple-blue dark:text-emerald-400 font-medium";
-                                answerSpan.textContent = inputValue + "\n";
-                                terminalOutput.appendChild(answerSpan);
-                                
-                                resolve(inputValue);
+                                let val = inputLine.value;
+                                inputLine.remove();
+                                outf(val + "\n");
+                                resolve(val);
                             }
                         });
                     });
-                }
+                },
+                inputfunTakesPrompt: true
             });
 
-            var myPromise = Sk.misceval.asyncToPromise(function() {
-                return Sk.importMainWithBody("<stdin>", false, code, true);
-            });
+            (Sk.TurtleGraphics ? Sk.TurtleGraphics['target'] = 'mycanvas' : null);
             
-            myPromise.then(function(mod) {
-                const doneMsg = document.createElement("span");
-                doneMsg.className = "text-gray-400 dark:text-gray-500 text-xs mt-4 block";
-                doneMsg.textContent = "[Process finished with exit code 0]";
-                terminalOutput.appendChild(doneMsg);
-                terminalContainer.scrollTop = terminalContainer.scrollHeight;
-                
-                runBtn.disabled = false;
-                runBtn.classList.remove("opacity-50");
+            Sk.importMainWithBody("<stdin>", false, prog, true).then(function(mod) {
+                outf("\n\n[Processo finalizado com sucesso]");
             }, function(err) {
-                const errMsg = document.createElement("span");
-                errMsg.className = "text-red-500 font-medium block mt-2";
-                
-                // Formatação simples do erro para facilitar leitura (linha e mensagem)
-                let errorText = err.toString();
-                if(err.traceback && err.traceback.length > 0) {
-                    errorText += ` (Linha ${err.traceback[0].lineno})`;
+                if (currentExecutionId === executionCounter) {
+                    outf("\n[Erro]: " + err.toString());
                 }
-                errMsg.textContent = errorText;
-                
-                terminalOutput.appendChild(errMsg);
-                terminalContainer.scrollTop = terminalContainer.scrollHeight;
-                
-                runBtn.disabled = false;
-                runBtn.classList.remove("opacity-50");
             });
         }
+
+        function stopExecution() {
+            executionCounter++;
+            let output = document.getElementById("output");
+            document.getElementById("turtle-container").classList.add("hidden");
+            output.innerHTML += "\n\n^C [Processo interrompido pelo usuário]\n";
+        }
+
+        function clearConsole() {
+            document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n";
+            document.getElementById("turtle-container").classList.add("hidden");
+        }
+
+        renderTabs();
+        editor.setValue(tabs[0].content);
     </script>
 </body>
 </html>
