@@ -78,15 +78,21 @@
             </div>
         </section>
 
-        <!-- Console -->
+        <!-- Console / Turtle -->
         <section class="flex-1 flex flex-col min-h-[400px] bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
                 <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal</span>
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
-            <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl">
-                <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed">~ lexis-ai-engine started...</div>
-                <div id="turtle-container" class="hidden absolute inset-0 bg-white flex items-center justify-center p-2 rounded-b-2xl"><div id="mycanvas"></div></div>
+            
+            <!-- Agora com overflow-hidden para conter o terminal e a tela branca em Split Screen -->
+            <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
+                <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">~ lexis-ai-engine started...</div>
+                
+                <!-- A tela branca agora é relativa e ocupa 50% do espaço só quando ativada, sem tampar o terminal -->
+                <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
+                    <div id="mycanvas"></div>
+                </div>
             </div>
         </section>
     </main>
@@ -96,7 +102,7 @@
             document.getElementById("output").innerHTML += `\n[Erro do Sistema]: ${msg}\n`;
         };
 
-        let tabs = [{ id: 1, name: 'main.py', content: 'print("Testando o Lexis AI!")\nnome = input("Qual o seu nome? ")\nprint("Olá, " + nome + "!")' }];
+        let tabs = [{ id: 1, name: 'main.py', content: '# Digite o código aqui\n' }];
         let activeTabId = 1;
 
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
@@ -134,7 +140,11 @@
         }
 
         let executionCounter = 0;
-        function outf(text) { let output = document.getElementById("output"); output.innerHTML += text; output.scrollTop = output.scrollHeight; }
+        function outf(text) { 
+            let output = document.getElementById("output"); 
+            output.innerHTML += text; 
+            output.scrollTop = output.scrollHeight; 
+        }
         
         function builtinRead(x) {
             if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
@@ -152,7 +162,14 @@
             let prog = editor.getValue();
             let currentExecutionId = ++executionCounter;
 
-            if (prog.includes("import turtle")) turtleBox.classList.remove("hidden");
+            // Se for desenhar geometria, divide a tela
+            if (prog.includes("import turtle")) {
+                turtleBox.classList.remove("hidden");
+            }
+
+            // CORREÇÃO CRÍTICA DO TURTLE: Garantir que o Skulpt tenha onde desenhar ANTES de rodar o script
+            Sk.TurtleGraphics = Sk.TurtleGraphics || {};
+            Sk.TurtleGraphics.target = 'mycanvas';
 
             Sk.pre = "output";
             Sk.configure({
@@ -185,10 +202,7 @@
                 },
                 inputfunTakesPrompt: true
             });
-
-            (Sk.TurtleGraphics ? Sk.TurtleGraphics['target'] = 'mycanvas' : null);
             
-            // CORREÇÃO: Utilização do Sk.misceval.asyncToPromise para suportar o input corretamente
             var myPromise = Sk.misceval.asyncToPromise(function() {
                 return Sk.importMainWithBody("<stdin>", false, prog, true);
             });
@@ -203,10 +217,12 @@
         function stopExecution() {
             executionCounter++;
             document.getElementById("output").innerHTML += "\n\n[Interrompido]";
-            document.getElementById("turtle-container").classList.add("hidden");
         }
 
-        function clearConsole() { document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; }
+        function clearConsole() { 
+            document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; 
+            document.getElementById("turtle-container").classList.add("hidden");
+        }
         renderTabs();
         editor.setValue(tabs[0].content);
     </script>
