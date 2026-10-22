@@ -26,14 +26,22 @@
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 
     <style>
-        .CodeMirror { height: 100%; min-height: 350px; font-family: 'SF Mono', monospace; font-size: 15px; border-radius: 0 0 1rem 1rem; }
+        /* Correção para o Scroll Independente do Editor (iPad/Mobile) */
+        .CodeMirror { 
+            position: absolute; 
+            top: 0; bottom: 0; left: 0; right: 0;
+            height: 100%; 
+            font-family: 'SF Mono', monospace; 
+            font-size: 15px; 
+        }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         
-        /* Modificador Injetado para as Guias de Indentação (CodeMirror) */
-        .show-guides .CodeMirror-line {
-            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.2) 1px, transparent 1px);
-            background-size: 34.5px 100%; /* Ajuste fino baseado em 4 espaços da fonte SF Mono 15px */
+        /* Modificador para as Guias de Indentação (CodeMirror) */
+        .CodeMirror.show-guides .CodeMirror-line {
+            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px);
+            background-size: 36px 100%; /* Largura exata para 4 espaços */
             background-repeat: repeat-y;
+            background-position: 4px 0; /* Alinhamento com a margem do texto */
         }
     </style>
 </head>
@@ -47,15 +55,15 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <!-- Novo: Botão de Importar Arquivo (PC/Mobile) -->
+            <!-- Botão de Importar Arquivo (PC/Mobile) -->
             <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
-                📁 Anexar Arquivo
+                📁 Anexar
             </label>
             <input id="file-upload" type="file" class="hidden" onchange="importarArquivo(event)" />
 
-            <!-- Novo: Botão de Toggle Indentação -->
+            <!-- Botão de Toggle Indentação -->
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                📏 Guias
+                <span id="guides-icon">📏</span> Guias
             </button>
 
             <!-- Controles Originais -->
@@ -76,7 +84,7 @@
     <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
         
         <!-- Editor -->
-        <section class="flex-1 flex flex-col min-h-[400px] bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
+        <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
                 <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
                 <div class="flex items-center gap-2 pb-1 shrink-0">
@@ -85,10 +93,12 @@
                     <button onclick="saveFile()" class="p-1.5 text-blue-500 hover:bg-gray-300 text-xs font-bold">Salvar .py</button>
                 </div>
             </div>
-            <!-- Div englobadora para receber a classe CSS das Guias de Indentação -->
-            <div id="editor-wrapper" class="flex-1 relative">
+            
+            <!-- Agora com 'overflow-hidden' e altura flexível forçada -->
+            <div id="editor-wrapper" class="flex-1 relative overflow-hidden">
                 <textarea id="code-editor"></textarea>
             </div>
+            
             <!-- Atalhos Mobile -->
             <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t dark:border-apple-borderDark p-2 flex items-center gap-2 overflow-x-auto rounded-b-2xl">
                 <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">Tab</button>
@@ -101,7 +111,7 @@
         </section>
 
         <!-- Console / Turtle -->
-        <section class="flex-1 flex flex-col min-h-[400px] bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
+        <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
                 <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal</span>
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
@@ -125,7 +135,6 @@
         let tabs = [{ id: 1, name: 'main.py', content: '# Digite o código aqui\n' }];
         let activeTabId = 1;
 
-        // Configuração do CodeMirror original mantida
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
         });
@@ -142,27 +151,28 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                editor.setValue(text); // Joga o texto lido no CodeMirror
-                outf(`\n[+] Arquivo '${file.name}' anexado com sucesso.\n`);
+                editor.setValue(text);
+                outf(`\n[+] Arquivo '${file.name}' anexado no editor.\n`);
             };
             reader.readAsText(file);
-            event.target.value = ''; // Reseta o input de arquivo
+            event.target.value = ''; 
         }
 
         // 2. LÓGICA DE GUIAS DE INDENTAÇÃO
         let guidesVisible = false;
         function toggleGuides() {
             guidesVisible = !guidesVisible;
-            const wrapper = document.getElementById("editor-wrapper");
+            const cmElement = document.querySelector(".CodeMirror");
             const btn = document.getElementById("btn-guides");
+            
             if (guidesVisible) {
-                wrapper.classList.add("show-guides");
-                btn.classList.replace("text-gray-900", "text-apple-blue");
-                btn.classList.replace("dark:text-gray-100", "dark:text-apple-blue");
+                cmElement.classList.add("show-guides");
+                btn.style.color = "#007AFF"; // Apple Blue
+                document.getElementById("guides-icon").style.filter = "grayscale(0)";
             } else {
-                wrapper.classList.remove("show-guides");
-                btn.classList.replace("text-apple-blue", "text-gray-900");
-                btn.classList.replace("dark:text-apple-blue", "dark:text-gray-100");
+                cmElement.classList.remove("show-guides");
+                btn.style.color = ""; 
+                document.getElementById("guides-icon").style.filter = "";
             }
         }
 
@@ -198,10 +208,10 @@
             output.scrollTop = output.scrollHeight; 
         }
         
-        // 3. ATUALIZAÇÃO DO IMPORT: Resolução Dinâmica de Módulos (Skulpt)
+        // 3. ATUALIZAÇÃO DO IMPORT
         function builtinRead(x) {
             if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-                throw "Erro: Módulo '" + x + "' não suportado pelo motor web.";
+                throw "Erro: Módulo '" + x + "' não suportado nativamente pelo motor web.";
             }
             return Sk.builtinFiles["files"][x];
         }
@@ -268,7 +278,7 @@
         function stopExecution() {
             executionCounter++;
             document.getElementById("output").innerHTML += "\n\n[Interrompido]";
-            document.getElementById("mycanvas").innerHTML = ""; // Limpa os vetores ao abortar
+            document.getElementById("mycanvas").innerHTML = ""; 
         }
 
         function clearConsole() { 
