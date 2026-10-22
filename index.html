@@ -28,6 +28,13 @@
     <style>
         .CodeMirror { height: 100%; min-height: 350px; font-family: 'SF Mono', monospace; font-size: 15px; border-radius: 0 0 1rem 1rem; }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
+        
+        /* Modificador Injetado para as Guias de Indentação (CodeMirror) */
+        .show-guides .CodeMirror-line {
+            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.2) 1px, transparent 1px);
+            background-size: 34.5px 100%; /* Ajuste fino baseado em 4 espaços da fonte SF Mono 15px */
+            background-repeat: repeat-y;
+        }
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
@@ -40,7 +47,19 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="toggleTheme()" class="p-2 mr-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <!-- Novo: Botão de Importar Arquivo (PC/Mobile) -->
+            <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
+                📁 Anexar Arquivo
+            </label>
+            <input id="file-upload" type="file" class="hidden" onchange="importarArquivo(event)" />
+
+            <!-- Novo: Botão de Toggle Indentação -->
+            <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
+                📏 Guias
+            </button>
+
+            <!-- Controles Originais -->
+            <button onclick="toggleTheme()" class="p-2 ml-1 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
                 <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
                 <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
@@ -66,7 +85,10 @@
                     <button onclick="saveFile()" class="p-1.5 text-blue-500 hover:bg-gray-300 text-xs font-bold">Salvar .py</button>
                 </div>
             </div>
-            <div class="flex-1 relative"><textarea id="code-editor"></textarea></div>
+            <!-- Div englobadora para receber a classe CSS das Guias de Indentação -->
+            <div id="editor-wrapper" class="flex-1 relative">
+                <textarea id="code-editor"></textarea>
+            </div>
             <!-- Atalhos Mobile -->
             <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t dark:border-apple-borderDark p-2 flex items-center gap-2 overflow-x-auto rounded-b-2xl">
                 <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">Tab</button>
@@ -85,11 +107,9 @@
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
             
-            <!-- Agora com overflow-hidden para conter o terminal e a tela branca em Split Screen -->
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
                 <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">~ lexis-ai-engine started...</div>
                 
-                <!-- A tela branca agora é relativa e ocupa 50% do espaço só quando ativada, sem tampar o terminal -->
                 <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
                     <div id="mycanvas"></div>
                 </div>
@@ -105,6 +125,7 @@
         let tabs = [{ id: 1, name: 'main.py', content: '# Digite o código aqui\n' }];
         let activeTabId = 1;
 
+        // Configuração do CodeMirror original mantida
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
         });
@@ -113,6 +134,37 @@
             let current = tabs.find(t => t.id === activeTabId);
             if (current) current.content = editor.getValue();
         });
+
+        // 1. LÓGICA DE IMPORTAÇÃO DE ARQUIVOS (PC E MOBILE)
+        function importarArquivo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                editor.setValue(text); // Joga o texto lido no CodeMirror
+                outf(`\n[+] Arquivo '${file.name}' anexado com sucesso.\n`);
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reseta o input de arquivo
+        }
+
+        // 2. LÓGICA DE GUIAS DE INDENTAÇÃO
+        let guidesVisible = false;
+        function toggleGuides() {
+            guidesVisible = !guidesVisible;
+            const wrapper = document.getElementById("editor-wrapper");
+            const btn = document.getElementById("btn-guides");
+            if (guidesVisible) {
+                wrapper.classList.add("show-guides");
+                btn.classList.replace("text-gray-900", "text-apple-blue");
+                btn.classList.replace("dark:text-gray-100", "dark:text-apple-blue");
+            } else {
+                wrapper.classList.remove("show-guides");
+                btn.classList.replace("text-apple-blue", "text-gray-900");
+                btn.classList.replace("dark:text-apple-blue", "dark:text-gray-100");
+            }
+        }
 
         function renderTabs() {
             const container = document.getElementById('tabs-container');
@@ -146,9 +198,10 @@
             output.scrollTop = output.scrollHeight; 
         }
         
+        // 3. ATUALIZAÇÃO DO IMPORT: Resolução Dinâmica de Módulos (Skulpt)
         function builtinRead(x) {
             if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-                throw "Erro: Módulo '" + x + "' não encontrado.";
+                throw "Erro: Módulo '" + x + "' não suportado pelo motor web.";
             }
             return Sk.builtinFiles["files"][x];
         }
@@ -162,12 +215,10 @@
             let prog = editor.getValue();
             let currentExecutionId = ++executionCounter;
 
-            // Se for desenhar geometria, divide a tela
-            if (prog.includes("import turtle")) {
+            if (prog.includes("import turtle") || prog.includes("from turtle import")) {
                 turtleBox.classList.remove("hidden");
             }
 
-            // CORREÇÃO CRÍTICA DO TURTLE: Garantir que o Skulpt tenha onde desenhar ANTES de rodar o script
             Sk.TurtleGraphics = Sk.TurtleGraphics || {};
             Sk.TurtleGraphics.target = 'mycanvas';
 
@@ -217,11 +268,13 @@
         function stopExecution() {
             executionCounter++;
             document.getElementById("output").innerHTML += "\n\n[Interrompido]";
+            document.getElementById("mycanvas").innerHTML = ""; // Limpa os vetores ao abortar
         }
 
         function clearConsole() { 
             document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; 
             document.getElementById("turtle-container").classList.add("hidden");
+            document.getElementById("mycanvas").innerHTML = "";
         }
         renderTabs();
         editor.setValue(tabs[0].content);
