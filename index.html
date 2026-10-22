@@ -3,230 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI — IDE Python</title>
-    <link rel="icon" type="image/png" href="image.png">
-
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } }
-        }
-    </script>
-
-    <!-- CodeMirror (Editor) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/theme/dracula.css">
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/mode/python/python.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/addon/edit/closebrackets.js"></script>
-
-    <!-- Skulpt (Motor Python) -->
-    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+    <title>Lexis AI - Python IDE</title>
+    
+    <!-- Skulpt (Interpretador Python para Navegador) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"></script>
 
     <style>
-        .CodeMirror { height: 100%; min-height: 350px; font-family: 'SF Mono', monospace; font-size: 15px; border-radius: 0 0 1rem 1rem; }
-        * { transition: background-color 0.3s ease, border-color 0.3s ease; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --accent-blue: #1f6feb;
+            --accent-green: #238636;
+            --accent-red: #da3633;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Topbar / Navegação */
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button, .file-upload-btn {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        button:hover, .file-upload-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        #btn-run {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #fff;
+            font-weight: bold;
+        }
+        #btn-run:hover { background-color: #2ea043; }
+
+        #btn-stop {
+            background-color: var(--accent-red);
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+        #btn-stop:hover { background-color: #b62324; }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Layout Principal dividido */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .workspace { flex-direction: column; }
+        }
+
+        .editor-pane, .output-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .pane-header {
+            background-color: var(--bg-secondary);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            color: #8b949e;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Área de Código com suporte a Guia de Indentação */
+        .editor-container {
+            flex: 1;
+            position: relative;
+            background-color: #040d21;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: #f0f6fc;
+            border: none;
+            padding: 12px;
+            resize: none;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            outline: none;
+            tab-size: 4;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* Efeito de Guia de Indentação Ativável */
+        .indent-guides textarea {
+            background-image: linear-gradient(to right, rgba(48, 54, 61, 0.4) 1px, transparent 1px);
+            background-size: 36px 100%; /* Largura visual correspondente ao tab */
+        }
+
+        /* Console de Saída e Canvas */
+        #output {
+            background-color: #020408;
+            color: #3fb950;
+            padding: 12px;
+            font-size: 0.85rem;
+            height: 120px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border-color);
+            white-space: pre-wrap;
+        }
+
+        .canvas-container {
+            flex: 1;
+            background-color: #020204;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #mycanvas {
+            background-color: #020204;
+        }
     </style>
 </head>
-<body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
+<body>
 
-    <!-- Header -->
-    <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
-            <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
+    <header>
+        <div class="brand">
+            <span>⚡ Lexis AI IDE</span>
         </div>
+        <div class="controls">
+            <!-- Botão de Upload Multiplataforma (PC / Mobile) -->
+            <label for="file-input" class="file-upload-btn">
+                📁 Anexar Arquivo
+            </label>
+            <input type="file" id="file-input" onchange="carregarArquivoLocal(event)">
 
-        <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="toggleTheme()" class="p-2 mr-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
-                <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-            </button>
-            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span>Parar</span>
-            </button>
-            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span>Executar</span>
-            </button>
+            <!-- Botão Guia de Indentação -->
+            <button onclick="toggleIndentationGuides()" id="btn-indent" title="Alternar linhas de indentação">📏 Guias</button>
+
+            <!-- Executar e Parar -->
+            <button id="btn-run" onclick="executarPython()">▶ Executar</button>
+            <button id="btn-stop" onclick="pararExecucao()">■ Parar</button>
         </div>
     </header>
 
-    <!-- Workspace -->
-    <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
-        
-        <!-- Editor -->
-        <section class="flex-1 flex flex-col min-h-[400px] bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
-            <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
-                <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
-                <div class="flex items-center gap-2 pb-1 shrink-0">
-                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-bold">+ Novo</button>
-                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-bold">Limpar</button>
-                    <button onclick="saveFile()" class="p-1.5 text-blue-500 hover:bg-gray-300 text-xs font-bold">Salvar .py</button>
-                </div>
-            </div>
-            <div class="flex-1 relative"><textarea id="code-editor"></textarea></div>
-            <!-- Atalhos Mobile -->
-            <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t dark:border-apple-borderDark p-2 flex items-center gap-2 overflow-x-auto rounded-b-2xl">
-                <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">Tab</button>
-                <button onclick="insertCode(':')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">:</button>
-                <button onclick="insertCode('=')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">=</button>
-                <button onclick="insertCode('()')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">( )</button>
-                <button onclick="insertCode('[]')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">[ ]</button>
-                <button onclick="insertCode('{}')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">{ }</button>
-            </div>
-        </section>
+    <div class="workspace">
+        <!-- Editor de Código -->
+        <div class="editor-pane" id="editor-wrapper">
+            <div class="pane-header">main.py (Ambiente de Scripting)</div>
+            <div class="editor-container">
+                <textarea id="code" spellcheck="false" placeholder="# Digite seu código Python ou importe um script aqui...">import turtle
+import math
+import time
 
-        <!-- Console / Turtle -->
-        <section class="flex-1 flex flex-col min-h-[400px] bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
-            <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
-                <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal</span>
-                <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
-            </div>
-            
-            <!-- Agora com overflow-hidden para conter o terminal e a tela branca em Split Screen -->
-            <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
-                <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">~ lexis-ai-engine started...</div>
+print("=====================================================")
+print(" LEXIS AI: SIMULADOR FÍSICO DO CAOS (PÊNDULO DUPLO)")
+print("=====================================================")
+print("[+] Inicializando matriz de gravidade e massas...")
+
+tela = turtle.Screen()
+tela.clearscreen()
+tela.bgcolor("#020204")
+tela.tracer(0)
+
+t = turtle.Turtle()
+t.hideturtle()
+t.speed(0)
+
+g = 1.8       
+m1 = 15.0     
+m2 = 15.0     
+r1 = 85.0     
+r2 = 85.0     
+dt = 0.15     
+
+ox, oy = 0, 70 
+cores = ["#00f0ff", "#ff0055", "#ffff00"]
+pendulos = []
+
+for i in range(3):
+    a1 = 2.2 + (i * 0.015) 
+    a2 = 2.2
+    pendulos.append({
+        "a1": a1, "a2": a2, 
+        "v1": 0.0, "v2": 0.0, 
+        "cor": cores[i],
+        "historico": []
+    })
+
+print("[+] Efeito Borboleta ativado. Aguarde a divergência...")
+
+try:
+    while True:
+        for _ in range(2): 
+            for p in pendulos:
+                a1, a2, v1, v2 = p["a1"], p["a2"], p["v1"], p["v2"]
                 
-                <!-- A tela branca agora é relativa e ocupa 50% do espaço só quando ativada, sem tampar o terminal -->
-                <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
-                    <div id="mycanvas"></div>
-                </div>
+                num1 = -g * (2 * m1 + m2) * math.sin(a1) - m2 * g * math.sin(a1 - 2 * a2) - 2 * math.sin(a1 - a2) * m2 * (v2 * v2 * r2 + v1 * v1 * r1 * math.cos(a1 - a2))
+                den1 = r1 * (2 * m1 + m2 - m2 * math.cos(2 * a1 - 2 * a2))
+                acc1 = num1 / den1
+                
+                num2 = 2 * math.sin(a1 - a2) * (v1 * v1 * r1 * (m1 + m2) + g * (m1 + m2) * math.cos(a1) + v2 * v2 * r2 * m2 * math.cos(a1 - a2))
+                den2 = r2 * (2 * m1 + m2 - m2 * math.cos(2 * a1 - 2 * a2))
+                acc2 = num2 / den2
+                
+                p["v1"] = (v1 + acc1 * dt)
+                p["v2"] = (v2 + acc2 * dt)
+                p["a1"] += p["v1"] * dt
+                p["a2"] += p["v2"] * dt
+                
+                p["x1"] = ox + r1 * math.sin(p["a1"])
+                p["y1"] = oy - r1 * math.cos(p["a1"])
+                p["x2"] = p["x1"] + r2 * math.sin(p["a2"])
+                p["y2"] = p["y1"] - r2 * math.cos(p["a2"])
+                
+                p["historico"].append((p["x2"], p["y2"]))
+                if len(p["historico"]) > 60: p["historico"].pop(0)
+
+        t.clear()
+        
+        for p in pendulos:
+            t.pensize(3.5)
+            t.pencolor(p["cor"])
+            t.penup()
+            primeiro = True
+            for hx, hy in p["historico"]:
+                t.goto(hx, hy)
+                if primeiro:
+                    t.pendown()
+                    primeiro = False
+            t.penup()
+            
+        for p in pendulos:
+            t.pensize(2)
+            t.pencolor("#444455") 
+            t.penup()
+            t.goto(ox, oy)
+            t.pendown()
+            t.goto(p["x1"], p["y1"])
+            t.dot(6, "#ffffff") 
+            t.goto(p["x2"], p["y2"])
+            t.dot(10, p["cor"]) 
+            t.penup()
+            
+        t.goto(ox, oy)
+        t.dot(12, "#ffffff")
+        tela.update()
+        time.sleep(0.01)
+except Exception as e:
+    print("Erro na simulação:", e)
+</textarea>
             </div>
-        </section>
-    </main>
+            <div id="output">Lexis AI Engine pronto. Módulos nativos carregados.</div>
+        </div>
+
+        <!-- Palco Gráfico (Turtle / Canvas) -->
+        <div class="output-pane">
+            <div class="pane-header">Renderização Gráfica em Tempo Real</div>
+            <div class="canvas-container">
+                <div id="mycanvas"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        window.onerror = function(msg, url, line) {
-            document.getElementById("output").innerHTML += `\n[Erro do Sistema]: ${msg}\n`;
-        };
-
-        let tabs = [{ id: 1, name: 'main.py', content: '# Digite o código aqui\n' }];
-        let activeTabId = 1;
-
-        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
-            mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
-        });
-
-        editor.on("change", function() {
-            let current = tabs.find(t => t.id === activeTabId);
-            if (current) current.content = editor.getValue();
-        });
-
-        function renderTabs() {
-            const container = document.getElementById('tabs-container');
-            container.innerHTML = '';
-            tabs.forEach(tab => {
-                let isActive = tab.id === activeTabId;
-                let tabEl = document.createElement('div');
-                tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 border-transparent'}`;
-                tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>${tabs.length > 1 ? `<span onclick="closeTab(event, ${tab.id})" class="text-red-500 ml-2 font-bold">×</span>` : ''}`;
-                container.appendChild(tabEl);
-            });
+        // Função para direcionar os "prints" do Python para a div #output
+        function outf(text) {
+            let mydiv = document.getElementById("output");
+            mydiv.innerHTML += text;
+            mydiv.scrollTop = mydiv.scrollHeight; 
         }
 
-        function switchTab(id) { activeTabId = id; let tab = tabs.find(t => t.id === id); if (tab) { editor.setValue(tab.content); renderTabs(); } }
-        function addNewTab() { let newId = Date.now(); tabs.push({ id: newId, name: `script_${tabs.length + 1}.py`, content: '# Novo código\n' }); switchTab(newId); }
-        function closeTab(event, id) { event.stopPropagation(); if (tabs.length <= 1) return; tabs = tabs.filter(t => t.id !== id); if (activeTabId === id) switchTab(tabs[0].id); else renderTabs(); }
-        function clearEditor() { if (confirm("Limpar código?")) editor.setValue(""); }
-        function saveFile() { let current = tabs.find(t => t.id === activeTabId); let blob = new Blob([editor.getValue()], { type: "text/plain;charset=utf-8" }); let url = URL.createObjectURL(blob); let a = document.createElement('a'); a.href = url; a.download = current ? current.name : "script.py"; a.click(); URL.revokeObjectURL(url); }
-        function insertCode(text) { let doc = editor.getDoc(); doc.replaceRange(text, doc.getCursor()); editor.focus(); }
-
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            document.getElementById('theme-icon-sun').classList.toggle('hidden');
-            document.getElementById('theme-icon-moon').classList.toggle('hidden');
-        }
-
-        let executionCounter = 0;
-        function outf(text) { 
-            let output = document.getElementById("output"); 
-            output.innerHTML += text; 
-            output.scrollTop = output.scrollHeight; 
-        }
-        
+        // Sistema de Importação Dinâmica de Bibliotecas Nativas do Skulpt
         function builtinRead(x) {
             if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-                throw "Erro: Módulo '" + x + "' não encontrado.";
+                throw "Biblioteca não suportada ou não encontrada: " + x;
             }
             return Sk.builtinFiles["files"][x];
         }
 
-        function runPython() {
-            let output = document.getElementById("output");
-            let turtleBox = document.getElementById("turtle-container");
-            output.innerHTML = "~ processando...\n";
-            turtleBox.classList.add("hidden");
+        // 1. Upload de Arquivos Multiplataforma via File API
+        function carregarArquivoLocal(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const leitor = new FileReader();
+            leitor.onload = function(e) {
+                const conteudoLido = e.target.result;
+                document.getElementById("code").value = conteudoLido;
+                document.getElementById("output").innerText += `\n[+] Script '${arquivo.name}' injetado no editor com sucesso.`;
+            };
+            leitor.readAsText(arquivo);
+        }
+
+        // 2. Sistema de Destaque de Indentações (Toggle)
+        let guiasAtivas = false;
+        function toggleIndentationGuides() {
+            guiasAtivas = !guiasAtivas;
+            const wrapper = document.getElementById("editor-wrapper");
+            const botao = document.getElementById("btn-indent");
             
-            let prog = editor.getValue();
-            let currentExecutionId = ++executionCounter;
-
-            // Se for desenhar geometria, divide a tela
-            if (prog.includes("import turtle")) {
-                turtleBox.classList.remove("hidden");
+            if (guiasAtivas) {
+                wrapper.classList.add("indent-guides");
+                botao.style.borderColor = "var(--accent-blue)";
+                botao.style.color = "var(--accent-blue)";
+            } else {
+                wrapper.classList.remove("indent-guides");
+                botao.style.borderColor = "var(--border-color)";
+                botao.style.color = "var(--text-main)";
             }
+        }
 
-            // CORREÇÃO CRÍTICA DO TURTLE: Garantir que o Skulpt tenha onde desenhar ANTES de rodar o script
-            Sk.TurtleGraphics = Sk.TurtleGraphics || {};
-            Sk.TurtleGraphics.target = 'mycanvas';
+        // 3. Motor de Execução Skulpt
+        function executarPython() {
+            let prog = document.getElementById("code").value;
+            let mydiv = document.getElementById("output");
+            mydiv.innerHTML = "[+] Compilando matriz lógica e resolvendo imports...\n";
+            
+            // Limpa o palco gráfico antes de uma nova execução
+            document.getElementById("mycanvas").innerHTML = "";
 
-            Sk.pre = "output";
+            Sk.pre("mycanvas");
             Sk.configure({
                 output: outf,
                 read: builtinRead,
-                inputfun: function(promptText) {
-                    return new Promise(function(resolve, reject) {
-                        if (currentExecutionId !== executionCounter) return reject("Stop");
-                        if (promptText) outf(promptText);
-                        
-                        let inputWrapper = document.createElement("div");
-                        inputWrapper.className = "flex w-full mt-1";
-                        let inputLine = document.createElement("input");
-                        inputLine.type = "text";
-                        inputLine.className = "bg-[#2A2A2A] text-white border border-apple-blue rounded px-2 py-1 font-mono text-[15px] outline-none flex-1 min-w-[150px]";
-                        
-                        inputWrapper.appendChild(inputLine);
-                        output.appendChild(inputWrapper);
-                        inputLine.focus();
-
-                        inputLine.addEventListener("keydown", function(e) {
-                            if (e.key === "Enter") {
-                                let val = inputLine.value; 
-                                inputWrapper.remove(); 
-                                outf(val + "\n"); 
-                                resolve(val);
-                            }
-                        });
-                    });
-                },
-                inputfunTakesPrompt: true
-            });
-            
-            var myPromise = Sk.misceval.asyncToPromise(function() {
-                return Sk.importMainWithBody("<stdin>", false, prog, true);
+                nonBlocking: true,
+                execLimit: Number.POSITIVE_INFINITY 
             });
 
-            myPromise.then(function(mod) {
-                outf("\n[Finalizado]");
-            }, function(err) {
-                if (currentExecutionId === executionCounter) outf("\n[Erro do Python]: " + err.toString());
+            (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'mycanvas';
+
+            // Executa o script assincronamente
+            let execucaoAtiva = Sk.importMainWithBody("<stdin>", false, prog, true);
+            execucaoAtiva.then(function(mod) {
+                console.log('Execução finalizada com sucesso.');
+            },
+            function(err) {
+                mydiv.innerHTML += "\n[Erro Sintático ou Lógico]: " + err.toString();
             });
         }
 
-        function stopExecution() {
-            executionCounter++;
-            document.getElementById("output").innerHTML += "\n\n[Interrompido]";
+        // Função para abortar o script recarregando o ambiente
+        function pararExecucao() {
+            location.reload(); 
         }
-
-        function clearConsole() { 
-            document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; 
-            document.getElementById("turtle-container").classList.add("hidden");
-        }
-        renderTabs();
-        editor.setValue(tabs[0].content);
     </script>
 </body>
 </html>
