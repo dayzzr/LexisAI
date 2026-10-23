@@ -47,7 +47,7 @@
                     • <em>"Qual o resumo da base?"</em> ou <em>"Amostra dos dados"</em><br>
                     • <em>"Encontre os outliers"</em> ou <em>"Existem nulos?"</em><br>
                     • <em>"Qual a mediana e desvio padrão?"</em><br>
-                    • <em>"Contagem de categorias"</em>
+                    • <em>"Instalar pacote openpyxl"</em>
                 </div>
             </div>
 
@@ -77,7 +77,6 @@
         <div class="flex items-center gap-2 pr-4 border-r border-gray-300 dark:border-gray-700">
             <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
-            <!-- Botão de Info Discreto -->
             <button onclick="abrirInfo()" class="text-gray-400 hover:text-apple-blue transition-colors ml-1" title="Sobre o Lexis AI">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
             </button>
@@ -152,9 +151,10 @@
         async function initPyodide() {
             try { 
                 pyodideInstance = await loadPyodide(); 
-                await pyodideInstance.loadPackage("pandas"); 
+                // AQUI: Carregando as bibliotecas essenciais e o gerenciador de pacotes micropip simultaneamente
+                await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip"]); 
                 pyodideCarregando = false; 
-                outf("\nInfo: Motor de Dados (Pyodide) inicializado. Preparado para análise.\n");
+                outf("\nInfo: Motor Pyodide inicializado com Pandas, Numpy, Matplotlib e Micropip nativos.\n");
             } catch (err) { 
                 outf("\nErro de Sistema: " + err); 
             }
@@ -168,10 +168,6 @@
         // CHATBOT NATIVO INTELIGENTE (SEM API)
         // ==========================================
         function abrirChat() {
-            if (!ultimoArquivoCSV) {
-                alert("Por favor, anexe uma base de dados (CSV) primeiro para habilitar a Inteligência Analítica.");
-                return;
-            }
             document.getElementById("chat-modal").classList.remove("hidden");
             document.getElementById("chat-input").focus();
         }
@@ -202,10 +198,23 @@ import numpy as np
 def responder_pergunta():
     try:
         pergunta = """${texto}""".lower()
-        df = pd.read_csv("/${ultimoArquivoCSV}")
+        
+        # Lógica para instrução de instalação via terminal (micropip)
+        if "instalar" in pergunta or "pip install" in pergunta:
+            pacote = pergunta.replace("instalar", "").replace("pip install", "").replace("pacote", "").replace("biblioteca", "").strip()
+            if pacote:
+                return f"Para instalar o pacote '{pacote}' dinamicamente do PyPI, copie este bloco no editor de código e clique em Executar:\\n\\n<pre>import micropip\\nawait micropip.install('{pacote}')\\nprint('{pacote} instalado com sucesso!')</pre>"
+            return "Para instalar bibliotecas, use o comando: instalar [nome_da_biblioteca]"
+
+        # Proteção para comandos de dados sem arquivo anexado
+        arquivo = "/${ultimoArquivoCSV}"
+        if arquivo == "/":
+            return "Comando reconhecido, mas você precisa **anexar um arquivo** primeiro para que eu possa executar análises de dados."
+
+        df = pd.read_csv(arquivo)
         
         if "ajuda" in pergunta or "comandos" in pergunta or "o que voce faz" in pergunta.replace('ç','c'):
-            return "Aqui estão as análises que posso fazer instantaneamente:\\n- 📈 **Resumo/Estatística**: Gera um quadro descritivo.\\n- ⚠️ **Outliers/Anomalias**: Detecta dados corrompidos usando cálculo de quartis.\\n- 🔍 **Nulos/Vazios**: Localiza buracos na base.\\n- 🧮 **Média, Mediana e Desvio Padrão**: Análises estatísticas diretas.\\n- 🔄 **Duplicadas**: Conta registros clonados.\\n- 🕸️ **Correlação**: Mostra se variáveis impactam umas nas outras.\\n- 📋 **Categorias/Frequência**: Conta as ocorrências em colunas de texto.\\n- 🔎 **Amostra**: Mostra as primeiras linhas da base."
+            return "Aqui estão as análises que posso fazer instantaneamente:\\n- 📈 **Resumo/Estatística**: Gera um quadro descritivo.\\n- ⚠️ **Outliers/Anomalias**: Detecta dados corrompidos usando cálculo de quartis.\\n- 🔍 **Nulos/Vazios**: Localiza buracos na base.\\n- 🧮 **Média, Mediana e Desvio Padrão**: Análises estatísticas diretas.\\n- 🔄 **Duplicadas**: Conta registros clonados.\\n- 🕸️ **Correlação**: Mostra se variáveis impactam umas nas outras.\\n- 📋 **Categorias/Frequência**: Conta as ocorrências em colunas de texto.\\n- 🔎 **Amostra**: Mostra as primeiras linhas da base.\\n- 📦 **Instalar [pacote]**: Mostra como instalar bibliotecas novas."
 
         if "resumo" in pergunta or "estatistica" in pergunta.replace('í','i') or "describe" in pergunta:
             resumo = df.describe().round(2).to_string()
@@ -269,7 +278,7 @@ def responder_pergunta():
         if "categoria" in pergunta or "frequencia" in pergunta.replace('ê','e') or "contagem" in pergunta:
             cat_cols = df.select_dtypes(include=['object']).columns
             if len(cat_cols) > 0:
-                col = cat_cols[0]  # Pega a primeira coluna de texto por padrão
+                col = cat_cols[0] 
                 return f"Contagem das principais ocorrências (Coluna '{col}'):\\n<pre>{df[col].value_counts().head(10).to_string()}</pre>"
             return "Não identifiquei colunas de texto/categorias claras para fazer contagem."
 
@@ -300,7 +309,7 @@ def responder_pergunta():
         if "linha" in pergunta or "tamanho" in pergunta or "quantas" in pergunta:
             return f"A base possui **{len(df):,} linhas** e **{len(df.columns)} colunas**."
 
-        return "Comando não mapeado. Experimente perguntar sobre: **resumo, nulos, média, mediana, desvio, outliers, duplicadas, tipos, amostra ou categorias**."
+        return "Comando não mapeado. Experimente perguntar sobre: **resumo, nulos, média, mediana, desvio, outliers, duplicadas, tipos, amostra, categorias, ou instalar pacotes**."
     
     except Exception as e:
         return f"Erro de processamento interno: {str(e)}"
