@@ -21,11 +21,18 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
 
     <style>
-        .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 15px; }
+        .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 14px; }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         .CodeMirror.show-guides .CodeMirror-line { background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px); background-size: 36px 100%; background-repeat: repeat-y; background-position: 4px 0; }
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
-        #chat-messages pre { white-space: pre-wrap; font-family: 'SF Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 5px;}
+        #chat-messages pre { white-space: pre-wrap; font-family: 'SF Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 5px; overflow-x: auto;}
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #888; }
+        .CodeMirror-vscrollbar, .CodeMirror-hscrollbar { outline: none; }
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
@@ -38,7 +45,7 @@
                     <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
                     <h2 class="font-bold text-sm">Lexis Copilot (Motor Analítico Local)</h2>
                 </div>
-                <button onclick="fecharChat()" class="text-gray-400 hover:text-white font-bold text-sm">✕</button>
+                <button onclick="fecharChat()" class="text-gray-400 hover:text-white font-bold text-sm transition-colors">✕</button>
             </div>
             
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-sm">
@@ -53,7 +60,7 @@
 
             <div class="p-3 bg-gray-50 dark:bg-[#1C1C1E] border-t border-gray-200 dark:border-gray-700 flex gap-2">
                 <input type="text" id="chat-input" placeholder="Digite seu comando analítico..." class="flex-1 bg-white dark:bg-[#2C2C2E] border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-colors" onkeypress="if(event.key === 'Enter') enviarMensagemChat()">
-                <button onclick="enviarMensagemChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm">Processar</button>
+                <button onclick="enviarMensagemChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-colors">Processar</button>
             </div>
         </div>
     </div>
@@ -63,7 +70,7 @@
         <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="bg-gray-100 dark:bg-[#1C1C1E] px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h2 class="font-bold text-sm">Arquitetura e Privacidade</h2>
-                <button onclick="fecharInfo()" class="text-gray-400 hover:text-white font-bold text-sm">✕</button>
+                <button onclick="fecharInfo()" class="text-gray-400 hover:text-white font-bold text-sm transition-colors">✕</button>
             </div>
             <div class="p-5 text-sm space-y-4 text-gray-700 dark:text-gray-300">
                 <p><strong>Motor de Execução Local:</strong> O Lexis AI foi construído utilizando WebAssembly (Pyodide e Skulpt), o que permite rodar Python e análises complexas de Data Science diretamente na memória RAM do seu navegador.</p>
@@ -83,34 +90,40 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer">
+            <!-- Indicador de Status Visual UI -->
+            <div id="status-indicator" class="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Carregando Motor
+            </div>
+
+            <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer transition-colors">
                 <option value="skulpt">Motor Gráfico</option>
-                <option value="pyodide">Motor de Dados</option>
+                <option value="pyodide" selected>Motor de Dados</option>
             </select>
-            <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
+            
+            <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2 transition-colors">
                 Anexar Arquivo
             </label>
             <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
             
-            <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
+            <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors">
                 <span id="guides-icon" class="text-gray-400">|</span> Guias
             </button>
             
-            <button onclick="executarRelatorioImpacto()" id="btn-agente" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 hidden">
+            <button onclick="executarRelatorioImpacto()" id="btn-agente" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors hidden">
                 Relatório de Impacto (BI)
             </button>
 
             <!-- BOTÃO DO COPILOT NATIVO -->
-            <button onclick="abrirChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-emerald-400">
+            <button onclick="abrirChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-emerald-400 transition-colors">
                 💬 Copilot Analítico
             </button>
 
-            <button onclick="toggleTheme()" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <button onclick="toggleTheme()" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                 <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
                 <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
-            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Parar</span></button>
-            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Executar</span></button>
+            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors"><span>Parar</span></button>
+            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors"><span>Executar</span></button>
         </div>
     </header>
 
@@ -119,8 +132,8 @@
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
                 <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
                 <div class="flex items-center gap-2 pb-1 shrink-0">
-                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-semibold">+ Novo</button>
-                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-semibold">Limpar</button>
+                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-semibold transition-colors">+ Novo</button>
+                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-semibold transition-colors">Limpar</button>
                 </div>
             </div>
             <div id="editor-wrapper" class="flex-1 relative overflow-hidden"><textarea id="code-editor"></textarea></div>
@@ -128,7 +141,7 @@
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
                 <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal / Output</span>
-                <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
+                <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white transition-colors">Limpar</button>
             </div>
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
                 <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado.</div>
@@ -151,10 +164,15 @@
         async function initPyodide() {
             try { 
                 pyodideInstance = await loadPyodide(); 
-                // AQUI: Carregando as bibliotecas essenciais e o gerenciador de pacotes micropip simultaneamente
                 await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip"]); 
                 pyodideCarregando = false; 
-                outf("\nInfo: Motor Pyodide inicializado com Pandas, Numpy, Matplotlib e Micropip nativos.\n");
+                
+                // UI: Atualiza indicador visual para "Pronto"
+                const statusInd = document.getElementById('status-indicator');
+                statusInd.className = "flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 transition-colors";
+                statusInd.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span> Motor Pronto`;
+                
+                outf("\nInfo: Motor Analítico inicializado com Pandas, Numpy, Matplotlib e Micropip.\n");
             } catch (err) { 
                 outf("\nErro de Sistema: " + err); 
             }
@@ -199,120 +217,84 @@ def responder_pergunta():
     try:
         pergunta = """${texto}""".lower()
         
-        # Lógica para instrução de instalação via terminal (micropip)
         if "instalar" in pergunta or "pip install" in pergunta:
             pacote = pergunta.replace("instalar", "").replace("pip install", "").replace("pacote", "").replace("biblioteca", "").strip()
             if pacote:
-                return f"Para instalar o pacote '{pacote}' dinamicamente do PyPI, copie este bloco no editor de código e clique em Executar:\\n\\n<pre>import micropip\\nawait micropip.install('{pacote}')\\nprint('{pacote} instalado com sucesso!')</pre>"
-            return "Para instalar bibliotecas, use o comando: instalar [nome_da_biblioteca]"
+                return f"Para instalar o pacote '{pacote}', execute isto no editor:\\n\\n<pre>import micropip\\nawait micropip.install('{pacote}')\\nprint('{pacote} instalado com sucesso!')</pre>"
+            return "Use o comando: instalar [nome]"
 
-        # Proteção para comandos de dados sem arquivo anexado
         arquivo = "/${ultimoArquivoCSV}"
         if arquivo == "/":
-            return "Comando reconhecido, mas você precisa **anexar um arquivo** primeiro para que eu possa executar análises de dados."
+            return "Por favor, **anexe um arquivo** primeiro para que eu possa analisar os dados."
 
         df = pd.read_csv(arquivo)
         
-        if "ajuda" in pergunta or "comandos" in pergunta or "o que voce faz" in pergunta.replace('ç','c'):
-            return "Aqui estão as análises que posso fazer instantaneamente:\\n- 📈 **Resumo/Estatística**: Gera um quadro descritivo.\\n- ⚠️ **Outliers/Anomalias**: Detecta dados corrompidos usando cálculo de quartis.\\n- 🔍 **Nulos/Vazios**: Localiza buracos na base.\\n- 🧮 **Média, Mediana e Desvio Padrão**: Análises estatísticas diretas.\\n- 🔄 **Duplicadas**: Conta registros clonados.\\n- 🕸️ **Correlação**: Mostra se variáveis impactam umas nas outras.\\n- 📋 **Categorias/Frequência**: Conta as ocorrências em colunas de texto.\\n- 🔎 **Amostra**: Mostra as primeiras linhas da base.\\n- 📦 **Instalar [pacote]**: Mostra como instalar bibliotecas novas."
+        if "ajuda" in pergunta or "comandos" in pergunta:
+            return "Análises disponíveis:\\n- 📈 **Resumo/Estatística**\\n- ⚠️ **Outliers/Anomalias**\\n- 🔍 **Nulos/Vazios**\\n- 🧮 **Média, Mediana e Desvio Padrão**\\n- 🔄 **Duplicadas**\\n- 🕸️ **Correlação**\\n- 📋 **Categorias/Frequência**\\n- 🔎 **Amostra**\\n- 📦 **Instalar [pacote]**"
 
-        if "resumo" in pergunta or "estatistica" in pergunta.replace('í','i') or "describe" in pergunta:
-            resumo = df.describe().round(2).to_string()
-            return f"Aqui está o sumário estatístico da base:\\n<pre>{resumo}</pre>"
+        if "resumo" in pergunta or "estatistica" in pergunta or "describe" in pergunta:
+            return f"Sumário estatístico:\\n<pre>{df.describe().round(2).to_string()}</pre>"
             
-        if "outlier" in pergunta or "anomalia" in pergunta or "estranho" in pergunta:
+        if "outlier" in pergunta or "anomalia" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
-            outliers_msg = "Análise de Outliers (Método Interquartil IQR):\\n"
+            outliers_msg = "Análise de Outliers (IQR):\\n"
             achou = False
             for col in num_cols:
-                q1 = df[col].quantile(0.25)
-                q3 = df[col].quantile(0.75)
+                q1, q3 = df[col].quantile(0.25), df[col].quantile(0.75)
                 iqr = q3 - q1
-                limite_inf = q1 - 1.5 * iqr
-                limite_sup = q3 + 1.5 * iqr
+                limite_inf, limite_sup = q1 - 1.5 * iqr, q3 + 1.5 * iqr
                 outliers = df[(df[col] < limite_inf) | (df[col] > limite_sup)]
                 if len(outliers) > 0:
                     achou = True
-                    outliers_msg += f"🚨 {col}: {len(outliers)} registros anormais.\\n"
-            if not achou:
-                outliers_msg += "Nenhuma anomalia severa detectada nas colunas numéricas."
-            return outliers_msg
+                    outliers_msg += f"🚨 {col}: {len(outliers)} anomalias.\\n"
+            return outliers_msg if achou else "Nenhuma anomalia detectada."
 
-        if "nulo" in pergunta or "vazio" in pergunta or "falta" in pergunta:
+        if "nulo" in pergunta or "vazio" in pergunta:
             nulos = df.isnull().sum()
             nulos = nulos[nulos > 0]
-            if not nulos.empty:
-                return f"Detectei dados faltantes nas colunas abaixo:\\n<pre>{nulos.to_string()}</pre>"
-            return "Excelente. Não há nenhum dado vazio ou nulo na base."
+            return f"Dados faltantes:\\n<pre>{nulos.to_string()}</pre>" if not nulos.empty else "Base perfeitamente preenchida."
             
         if "duplicada" in pergunta or "repetida" in pergunta:
             dups = df.duplicated().sum()
-            if dups > 0:
-                return f"⚠️ Atenção: Encontrei **{dups} linhas exatamente iguais** (duplicadas)."
-            return "Base limpa. Não há linhas duplicadas."
+            return f"⚠️ Encontrei **{dups} linhas duplicadas**." if dups > 0 else "Nenhuma linha duplicada."
 
         if "media" in pergunta.replace('é','e') or "média" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 0:
-                return f"Médias calculadas:\\n<pre>{df[num_cols].mean().round(2).to_string()}</pre>"
-            return "Não encontrei colunas com números."
+            return f"Médias:\\n<pre>{df[num_cols].mean().round(2).to_string()}</pre>" if len(num_cols) > 0 else "Sem colunas numéricas."
 
         if "mediana" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 0:
-                return f"Medianas (valor central da distribuição):\\n<pre>{df[num_cols].median().round(2).to_string()}</pre>"
-            return "Não encontrei colunas com números para calcular a mediana."
+            return f"Medianas:\\n<pre>{df[num_cols].median().round(2).to_string()}</pre>" if len(num_cols) > 0 else "Sem colunas numéricas."
 
-        if "desvio" in pergunta or "variancia" in pergunta.replace('â','a'):
+        if "desvio" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 0:
-                return f"Desvio Padrão (Volatilidade e dispersão):\\n<pre>{df[num_cols].std().round(2).to_string()}</pre>"
-            return "Não encontrei colunas com números."
+            return f"Desvio Padrão:\\n<pre>{df[num_cols].std().round(2).to_string()}</pre>" if len(num_cols) > 0 else "Sem colunas numéricas."
 
         if "soma" in pergunta or "total" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 0:
-                return f"Somas acumuladas:\\n<pre>{df[num_cols].sum().round(2).to_string()}</pre>"
-            return "Não encontrei colunas com números."
+            return f"Somas:\\n<pre>{df[num_cols].sum().round(2).to_string()}</pre>" if len(num_cols) > 0 else "Sem colunas numéricas."
 
-        if "categoria" in pergunta or "frequencia" in pergunta.replace('ê','e') or "contagem" in pergunta:
+        if "categoria" in pergunta or "frequencia" in pergunta:
             cat_cols = df.select_dtypes(include=['object']).columns
-            if len(cat_cols) > 0:
-                col = cat_cols[0] 
-                return f"Contagem das principais ocorrências (Coluna '{col}'):\\n<pre>{df[col].value_counts().head(10).to_string()}</pre>"
-            return "Não identifiquei colunas de texto/categorias claras para fazer contagem."
+            return f"Frequência ('{cat_cols[0]}'):\\n<pre>{df[cat_cols[0]].value_counts().head(10).to_string()}</pre>" if len(cat_cols) > 0 else "Sem colunas de texto."
 
-        if "amostra" in pergunta or "exemplo" in pergunta or "head" in pergunta:
-            return f"Mostrando as primeiras 5 linhas da base:\\n<pre>{df.head().to_string()}</pre>"
+        if "amostra" in pergunta or "exemplo" in pergunta:
+            return f"Amostra (5 linhas):\\n<pre>{df.head().to_string()}</pre>"
 
         if "tipo" in pergunta or "formato" in pergunta:
-            return f"Tipos de dados armazenados (DataTypes):\\n<pre>{df.dtypes.to_string()}</pre>"
+            return f"Tipos de dados:\\n<pre>{df.dtypes.to_string()}</pre>"
 
-        if "maior" in pergunta or "maximo" in pergunta.replace('á','a'):
+        if "correlacao" in pergunta.replace('ç','c'):
             num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 0:
-                return f"Valores Máximos (Teto):\\n<pre>{df[num_cols].max().round(2).to_string()}</pre>"
-            return "Não há colunas numéricas."
+            return f"Matriz de Correlação:\\n<pre>{df[num_cols].corr().round(3).to_string()}</pre>" if len(num_cols) > 1 else "Necessário 2 colunas numéricas."
 
-        if "menor" in pergunta or "minimo" in pergunta.replace('í','i'):
-            num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 0:
-                return f"Valores Mínimos (Piso):\\n<pre>{df[num_cols].min().round(2).to_string()}</pre>"
-            return "Não há colunas numéricas."
+        if "linha" in pergunta or "tamanho" in pergunta:
+            return f"Base com **{len(df):,} linhas** e **{len(df.columns)} colunas**."
 
-        if "correlacao" in pergunta.replace('ç','c').replace('ã','a'):
-            num_cols = df.select_dtypes(include=[np.number]).columns
-            if len(num_cols) > 1:
-                return f"Matriz de Correlação Linear (Como variáveis afetam umas às outras):\\n<pre>{df[num_cols].corr().round(3).to_string()}</pre>"
-            return "Preciso de pelo menos duas colunas numéricas para calcular correlação."
-
-        if "linha" in pergunta or "tamanho" in pergunta or "quantas" in pergunta:
-            return f"A base possui **{len(df):,} linhas** e **{len(df.columns)} colunas**."
-
-        return "Comando não mapeado. Experimente perguntar sobre: **resumo, nulos, média, mediana, desvio, outliers, duplicadas, tipos, amostra, categorias, ou instalar pacotes**."
+        return "Comando não reconhecido. Digite 'ajuda' para ver a lista."
     
     except Exception as e:
-        return f"Erro de processamento interno: {str(e)}"
+        return f"Erro interno: {str(e)}"
 
 responder_pergunta()
 `;
@@ -337,7 +319,16 @@ responder_pergunta()
         let tabs = [{ id: 1, name: 'main.py', content: '# Lexis Engine Online\nimport pandas as pd\n\n' }];
         let activeTabId = 1;
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), { mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true });
-        editor.on("change", function() { let current = tabs.find(t => t.id === activeTabId); if (current) current.content = editor.getValue(); });
+        
+        // Melhoria de Desempenho: Debounce no CodeMirror (Salva sem travar a digitação)
+        let timeoutEditor;
+        editor.on("change", function() { 
+            clearTimeout(timeoutEditor);
+            timeoutEditor = setTimeout(() => {
+                let current = tabs.find(t => t.id === activeTabId); 
+                if (current) current.content = editor.getValue(); 
+            }, 300);
+        });
         
         function importarArquivoInteligente(event) {
             const file = event.target.files[0]; if (!file) return;
@@ -348,7 +339,7 @@ responder_pergunta()
                     const data = new Uint8Array(e.target.result); pyodideInstance.FS.writeFile("/" + file.name, data);
                     ultimoArquivoCSV = file.name; 
                     document.getElementById("btn-agente").classList.remove("hidden"); 
-                    outf(`\n[SUCESSO] Arquivo de dados carregado na RAM.\n-> O Chatbot Analítico e o Relatório Executivo estão prontos.\n`);
+                    outf(`\n[SUCESSO] Arquivo de dados '${file.name}' carregado na RAM.\n`);
                 }; reader.readAsArrayBuffer(file);
             } else { reader.onload = function(e) { editor.setValue(e.target.result); }; reader.readAsText(file); }
             event.target.value = ''; 
@@ -397,15 +388,39 @@ print("Relatório de Impacto gerado e baixado no dispositivo.")
             pyodideInstance.runPythonAsync(scriptBI).catch((err) => outf("Erro BI: " + err));
         }
 
+        // ==========================================
+        // INTERCEPTADOR DE ERROS UX (NOVA FUNÇÃO)
+        // ==========================================
         function runPython() {
-            let prog = editor.getValue(); let output = document.getElementById("output"); let turtleBox = document.getElementById("turtle-container"); let motor = document.getElementById("engine-selector").value;
-            output.innerHTML = "Executando script...\n"; turtleBox.classList.add("hidden"); document.getElementById("mycanvas").innerHTML = "";
+            let prog = editor.getValue(); 
+            let output = document.getElementById("output"); 
+            let turtleBox = document.getElementById("turtle-container"); 
+            let motor = document.getElementById("engine-selector").value;
+            
+            output.innerHTML = "Executando script...\n"; 
+            turtleBox.classList.add("hidden"); 
+            document.getElementById("mycanvas").innerHTML = "";
+            
             if (motor === "skulpt") {
                 if (prog.includes("import turtle")) turtleBox.classList.remove("hidden");
-                Sk.TurtleGraphics = Sk.TurtleGraphics || {}; Sk.TurtleGraphics.target = 'mycanvas'; Sk.pre = "output";
+                Sk.TurtleGraphics = Sk.TurtleGraphics || {}; 
+                Sk.TurtleGraphics.target = 'mycanvas'; 
+                Sk.pre = "output";
                 Sk.configure({ output: outf, read: function(x) { return Sk.builtinFiles["files"][x]; } });
-                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).catch((err) => outf("\nErro: " + err));
+                
+                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).catch((err) => {
+                    let erroStr = err.toString();
+                    if (erroStr.includes("ImportError") && (erroStr.includes("pandas") || erroStr.includes("numpy") || erroStr.includes("matplotlib"))) {
+                        outf("\n⚠️ ALERTA DE SISTEMA: Bibliotecas de Data Science não são suportadas no Motor Gráfico.\n-> SOLUÇÃO: Altere o seletor no topo da tela para 'Motor de Dados' e clique em Executar novamente.\n");
+                    } else {
+                        outf("\nErro: " + erroStr);
+                    }
+                });
             } else if (motor === "pyodide") { 
+                if (pyodideCarregando) {
+                    outf("\nAviso: O Motor Analítico ainda está carregando. Aguarde o indicador ficar verde.\n");
+                    return;
+                }
                 pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") }); 
                 pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro Python:\n" + err)); 
             }
@@ -415,7 +430,7 @@ print("Relatório de Impacto gerado e baixado no dispositivo.")
         function toggleGuides() { guidesVisible = !guidesVisible; document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible); document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : ""; document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : ""; }
         function renderTabs() {
             const container = document.getElementById('tabs-container'); container.innerHTML = '';
-            tabs.forEach(tab => { let isActive = tab.id === activeTabId; let tabEl = document.createElement('div'); tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'}`; tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`; container.appendChild(tabEl); });
+            tabs.forEach(tab => { let isActive = tab.id === activeTabId; let tabEl = document.createElement('div'); tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'} transition-colors`; tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`; container.appendChild(tabEl); });
         }
         function switchTab(id) { activeTabId = id; editor.setValue(tabs.find(t => t.id === id).content); renderTabs(); }
         function addNewTab() { let newId = Date.now(); tabs.push({ id: newId, name: `script_${tabs.length + 1}.py`, content: '' }); switchTab(newId); }
