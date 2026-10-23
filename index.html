@@ -3,33 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI — IDE Híbrida</title>
+    <title>Lexis AI — IDE Híbrida & Copilot</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } }
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } } }
     </script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/theme/dracula.css">
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/mode/python/python.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/addon/edit/closebrackets.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
     <style>
         .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 15px; }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         .CodeMirror.show-guides .CodeMirror-line { background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px); background-size: 36px 100%; background-repeat: repeat-y; background-position: 4px 0; }
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
+        .ai-text { color: #a78bfa; font-weight: bold; }
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
+    
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         
-        <!-- CORREÇÃO DO LOGO AQUI -->
         <div class="flex items-center gap-3 pr-4 border-r border-gray-300 dark:border-gray-700">
             <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
@@ -44,13 +46,21 @@
                 Anexar Arquivo
             </label>
             <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
+            
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
                 <span id="guides-icon" class="text-gray-400">|</span> Guias
             </button>
+            
             <button onclick="executarAgenteIA()" id="btn-agente" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 hidden">
                 Auditoria Inteligente
             </button>
-            <button onclick="toggleTheme()" class="p-2 ml-1 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+
+            <!-- BOTÃO LEXIS COPILOT -->
+            <button onclick="perguntarIA()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-purple-400">
+                💡 Lexis Copilot
+            </button>
+
+            <button onclick="toggleTheme()" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
                 <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
                 <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
@@ -58,6 +68,7 @@
             <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Executar Script</span></button>
         </div>
     </header>
+
     <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
@@ -90,19 +101,83 @@
     </main>
 
     <script>
+        // ==========================================
+        // SISTEMA DE IA GENERATIVA (LEXIS COPILOT) - MVP
+        // ==========================================
+        async function perguntarIA() {
+            // OFUSCAÇÃO DE CHAVE: Substitua PARTE_1, PARTE_2 e PARTE_3 pelos pedaços da sua chave real
+            const p1 = "AQ.Ab8RN6IxD7TQeL-og"; 
+            const p2 = "LlpX9TItQRizFoOnR2"; 
+            const p3 = "8rJlpGdoA9x7vxQ"; 
+            const apiKey = p1 + p2 + p3;
+
+            if (apiKey === "PARTE_1PARTE_2PARTE_3") {
+                outf("\nAviso: Chave de API não configurada no código-fonte.\n");
+                return;
+            }
+
+            const codigoAtual = editor.getValue();
+            const logTerminal = document.getElementById("output").innerText.slice(-500); 
+            
+            if (codigoAtual.trim() === "") {
+                outf("\nCopilot: O editor está vazio. Escreva algum código para eu analisar.\n");
+                return;
+            }
+
+            outf("\n<span class='ai-text'>Lexis Copilot: Analisando seu código...</span>\n");
+
+            const prompt = `Você é o Lexis Copilot, um assistente de IA integrado a uma IDE Python. 
+            Seu objetivo é encontrar erros, explicar códigos e otimizar scripts de Data Science. Responda de forma direta e profissional.
+            
+            Código atual do usuário:
+            ${codigoAtual}
+            
+            Últimos logs do terminal:
+            ${logTerminal}
+            
+            Se houver erro, explique como corrigir. Se não houver, sugira uma melhoria breve.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    outf(`\n<span class='ai-text'>Erro na IA: ${data.error.message}</span>\n`);
+                } else {
+                    const respostaIA = data.candidates[0].content.parts[0].text;
+                    outf(`\n<span class='ai-text'>=== LEXIS COPILOT ===\n${respostaIA}\n=====================</span>\n`);
+                }
+            } catch (err) {
+                outf(`\n<span class='ai-text'>Falha de conexão com a API da IA: ${err}</span>\n`);
+            }
+        }
+
+        // ==========================================
+        // MOTORES ORIGINAIS (Pyodide & Skulpt)
+        // ==========================================
         let pyodideInstance = null;
         let pyodideCarregando = true;
         let ultimoArquivoCSV = ""; 
         function outf(text) { let output = document.getElementById("output"); output.innerHTML += text; output.scrollTop = output.scrollHeight; }
+        
         async function initPyodide() {
             try { pyodideInstance = await loadPyodide(); await pyodideInstance.loadPackage("pandas"); pyodideCarregando = false; outf("\nInfo: Motor de Dados inicializado.\n");
             } catch (err) { outf("\nErro de Sistema: " + err); }
         }
         initPyodide();
+
         let tabs = [{ id: 1, name: 'main.py', content: '# Ambiente de desenvolvimento pronto.' }];
         let activeTabId = 1;
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), { mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true });
         editor.on("change", function() { let current = tabs.find(t => t.id === activeTabId); if (current) current.content = editor.getValue(); });
+        
         function importarArquivoInteligente(event) {
             const file = event.target.files[0]; if (!file) return;
             const extensao = file.name.split('.').pop().toLowerCase(); const reader = new FileReader();
@@ -116,6 +191,7 @@
             } else { reader.onload = function(e) { editor.setValue(e.target.result); }; reader.readAsText(file); }
             event.target.value = ''; 
         }
+
         function executarAgenteIA() {
             if (document.getElementById("engine-selector").value !== "pyodide") { outf("\nAviso: Mude para 'Motor de Dados' para executar a Auditoria Inteligente.\n"); return; }
             if (!ultimoArquivoCSV) { outf("\nAviso: Nenhuma base de dados anexada.\n"); return; }
@@ -143,6 +219,7 @@ print(f"\\nStatus: Auditoria concluída. Relatório '{nome_saida}' exportado.")
             pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
             pyodideInstance.runPythonAsync(scriptIA).catch((err) => outf("\nErro de Processamento: " + err));
         }
+
         function runPython() {
             let prog = editor.getValue(); let output = document.getElementById("output"); let turtleBox = document.getElementById("turtle-container"); let motor = document.getElementById("engine-selector").value;
             output.innerHTML = "Executando script...\n"; turtleBox.classList.add("hidden"); document.getElementById("mycanvas").innerHTML = "";
@@ -153,6 +230,7 @@ print(f"\\nStatus: Auditoria concluída. Relatório '{nome_saida}' exportado.")
                 Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).then(() => outf("\nProcesso finalizado."), (err) => outf("\nErro de Execução: " + err));
             } else if (motor === "pyodide") { pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") }); pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro de Execução:\n" + err)); }
         }
+
         let guidesVisible = false;
         function toggleGuides() { guidesVisible = !guidesVisible; document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible); document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : ""; document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : ""; }
         function renderTabs() {
