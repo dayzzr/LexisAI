@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI — Enterprise Data Studio & Groq Copilot</title>
+    <title>Lexis AI — Enterprise Data Studio & Native Copilot</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,11 +25,43 @@
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         .CodeMirror.show-guides .CodeMirror-line { background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px); background-size: 36px 100%; background-repeat: repeat-y; background-position: 4px 0; }
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
-        .ai-text { color: #a78bfa; font-weight: bold; }
+        
+        /* Ajuste do modal do chat para leitura de dados longos */
+        #chat-messages pre { white-space: pre-wrap; font-family: 'SF Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 5px;}
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
     
+    <!-- MODAL DO CHATBOT NATIVO INTELIGENTE -->
+    <div id="chat-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-200 dark:border-gray-700 flex flex-col h-[600px] overflow-hidden">
+            <div class="bg-gray-100 dark:bg-[#1C1C1E] px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h2 class="font-bold text-sm">Lexis Copilot (Motor Analítico Local)</h2>
+                </div>
+                <button onclick="fecharChat()" class="text-gray-400 hover:text-white font-bold text-sm">✕</button>
+            </div>
+            
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-sm">
+                <div class="bg-emerald-900/40 text-emerald-100 p-4 rounded-xl border border-emerald-700/50">
+                    <strong>Sistema Online. 100% Local e Seguro.</strong><br><br>
+                    Posso analisar sua base de dados instantaneamente. Experimente me pedir algo como:<br>
+                    • <em>"Qual o resumo da base?"</em><br>
+                    • <em>"Encontre os outliers e anomalias"</em><br>
+                    • <em>"Calcule a média e soma de tudo"</em><br>
+                    • <em>"Existem dados nulos ou duplicados?"</em><br>
+                    • <em>"Gere a matriz de correlação"</em>
+                </div>
+            </div>
+
+            <div class="p-3 bg-gray-50 dark:bg-[#1C1C1E] border-t border-gray-200 dark:border-gray-700 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Digite seu comando analítico..." class="flex-1 bg-white dark:bg-[#2C2C2E] border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-colors" onkeypress="if(event.key === 'Enter') enviarMensagemChat()">
+                <button onclick="enviarMensagemChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-sm">Processar</button>
+            </div>
+        </div>
+    </div>
+
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-3 pr-4 border-r border-gray-300 dark:border-gray-700">
             <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
@@ -42,9 +74,9 @@
                 <option value="pyodide">Motor de Dados</option>
             </select>
             <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
-                Anexar Arquivo
+                Anexar Arquivo CSV
             </label>
-            <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
+            <input id="file-upload" type="file" accept=".csv" class="hidden" onchange="importarArquivoInteligente(event)" />
             
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
                 <span id="guides-icon" class="text-gray-400">|</span> Guias
@@ -54,9 +86,9 @@
                 Relatório de Impacto (BI)
             </button>
 
-            <!-- BOTÃO LEXIS COPILOT (GROQ API COM CORS) -->
-            <button onclick="perguntarGroqAI()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-purple-400">
-                💡 Lexis Copilot
+            <!-- BOTÃO DO COPILOT NATIVO OFF-GRID -->
+            <button onclick="abrirChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-emerald-400">
+                💬 Copilot Analítico
             </button>
 
             <button onclick="toggleTheme()" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -64,7 +96,7 @@
                 <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
             <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Parar</span></button>
-            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Executar Script</span></button>
+            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Executar</span></button>
         </div>
     </header>
 
@@ -78,14 +110,6 @@
                 </div>
             </div>
             <div id="editor-wrapper" class="flex-1 relative overflow-hidden"><textarea id="code-editor"></textarea></div>
-            <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t dark:border-apple-borderDark p-2 flex items-center gap-2 overflow-x-auto rounded-b-2xl">
-                <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">Tab</button>
-                <button onclick="insertCode(':')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">:</button>
-                <button onclick="insertCode('=')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">=</button>
-                <button onclick="insertCode('()')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">( )</button>
-                <button onclick="insertCode('[]')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">[ ]</button>
-                <button onclick="insertCode('{}')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">{ }</button>
-            </div>
         </section>
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
@@ -93,83 +117,171 @@
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
-                <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado.</div>
+                <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado (Modo Offline Seguro).</div>
                 <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative"><div id="mycanvas"></div></div>
             </div>
         </section>
     </main>
 
     <script>
-        // ==========================================
-        // LEXIS COPILOT (INTEGRAÇÃO GROQ API COM CORS)
-        // ==========================================
-        async function perguntarGroqAI() {
-            const p1 = "gsk_baiJOM48LCl0blV"; 
-            const p2 = "E9A0zWGdyb3FY0lKU2i"; 
-            const p3 = "EBgAMfvheu5tSBtbZ5"; 
-            const apiKey = p1 + p2 + p3;
-
-            const codigoAtual = editor.getValue();
-            const logTerminal = document.getElementById("output").innerText.slice(-500); 
-            
-            if (codigoAtual.trim() === "") {
-                outf("\nLexis Copilot: O editor está vazio. Escreva algum código para eu analisar.\n");
-                return;
-            }
-
-            outf("\n<span class='ai-text'>Lexis Copilot (Groq): Conectando ao motor de IA...</span>\n");
-
-            const promptSistema = "Você é o Lexis Copilot, um assistente especialista em Python, Data Science, Pandas e automação corporativa. Seja direto, técnico e ajude a otimizar scripts.";
-            const promptUsuario = `Código atual:\n${codigoAtual}\n\nLogs recentes:\n${logTerminal}\n\nExplique o código ou aponte como corrigir eventuais falhas.`;
-
-            try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    mode: "cors", // Garante permissão de comunicação entre domínios
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "llama3-8b-8192",
-                        messages: [
-                            { role: "system", content: promptSistema },
-                            { role: "user", content: promptUsuario }
-                        ],
-                        temperature: 0.3,
-                        max_tokens: 600
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                const respostaIA = data.choices[0].message.content;
-                
-                outf(`\n<span class='ai-text'>=== LEXIS COPILOT ===\n${respostaIA}\n=====================</span>\n`);
-
-            } catch (err) {
-                outf(`\n<span class='ai-text'>Falha de conexão: ${err.message}. (Dica: Verifique se sua rede permite chamadas externas para a API da Groq).</span>\n`);
-            }
-        }
-
-        // ==========================================
-        // MOTORES DO SISTEMA (Pyodide & Skulpt & BI)
-        // ==========================================
         let pyodideInstance = null;
         let pyodideCarregando = true;
         let ultimoArquivoCSV = ""; 
         function outf(text) { let output = document.getElementById("output"); output.innerHTML += text; output.scrollTop = output.scrollHeight; }
         
         async function initPyodide() {
-            try { pyodideInstance = await loadPyodide(); await pyodideInstance.loadPackage("pandas"); pyodideCarregando = false; outf("\nInfo: Motor de Dados inicializado.\n");
-            } catch (err) { outf("\nErro de Sistema: " + err); }
+            try { 
+                pyodideInstance = await loadPyodide(); 
+                await pyodideInstance.loadPackage("pandas"); 
+                pyodideCarregando = false; 
+                outf("\nInfo: Motor de Dados (Pyodide) inicializado. Preparado para análise.\n");
+            } catch (err) { 
+                outf("\nErro de Sistema: " + err); 
+            }
         }
         initPyodide();
 
-        let tabs = [{ id: 1, name: 'main.py', content: '# Ambiente de desenvolvimento pronto.' }];
+        // ==========================================
+        // CHATBOT NATIVO INTELIGENTE (SEM API)
+        // ==========================================
+        function abrirChat() {
+            if (!ultimoArquivoCSV) {
+                alert("Por favor, anexe uma base de dados (CSV) primeiro para habilitar a Inteligência Analítica.");
+                return;
+            }
+            document.getElementById("chat-modal").classList.remove("hidden");
+            document.getElementById("chat-input").focus();
+        }
+
+        function fecharChat() {
+            document.getElementById("chat-modal").classList.add("hidden");
+        }
+
+        async function enviarMensagemChat() {
+            const inputEl = document.getElementById("chat-input");
+            const texto = inputEl.value.trim();
+            if (!texto) return;
+
+            const chatMessages = document.getElementById("chat-messages");
+            // Mensagem do usuário
+            chatMessages.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-gray-200 dark:bg-[#3A3A3C] text-black dark:text-white p-3 rounded-xl max-w-[85%] text-sm shadow-sm">
+                        ${texto}
+                    </div>
+                </div>`;
+            inputEl.value = "";
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Script Python do Agente NLP (Roda internamente no Pyodide)
+            const scriptChat = `
+import pandas as pd
+import numpy as np
+
+def responder_pergunta():
+    try:
+        pergunta = """${texto}""".lower()
+        df = pd.read_csv("/${ultimoArquivoCSV}")
+        
+        if "ajuda" in pergunta or "comandos" in pergunta or "o que voce faz" in pergunta.replace('ç','c'):
+            return "Aqui estão as análises que posso fazer instantaneamente:\\n- 📈 **Resumo/Estatística**: Gera um quadro descritivo.\\n- ⚠️ **Outliers/Anomalias**: Detecta dados corrompidos usando cálculo de quartis.\\n- 🔍 **Nulos/Vazios**: Localiza buracos na base.\\n- 🧮 **Média/Soma/Máximo/Mínimo**: Calcula os KPIs financeiros e operacionais.\\n- 🔄 **Duplicadas**: Conta registros clonados.\\n- 🕸️ **Correlação**: Mostra se variáveis impactam umas nas outras."
+
+        if "resumo" in pergunta or "estatistica" in pergunta.replace('í','i') or "describe" in pergunta:
+            resumo = df.describe().round(2).to_string()
+            return f"Aqui está o sumário executivo da base:\\n<pre>{resumo}</pre>"
+            
+        if "outlier" in pergunta or "anomalia" in pergunta or "estranho" in pergunta:
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            outliers_msg = "Análise de Outliers (Método Interquartil IQR):\\n"
+            achou = False
+            for col in num_cols:
+                q1 = df[col].quantile(0.25)
+                q3 = df[col].quantile(0.75)
+                iqr = q3 - q1
+                limite_inf = q1 - 1.5 * iqr
+                limite_sup = q3 + 1.5 * iqr
+                outliers = df[(df[col] < limite_inf) | (df[col] > limite_sup)]
+                if len(outliers) > 0:
+                    achou = True
+                    outliers_msg += f"🚨 {col}: {len(outliers)} registros anormais.\\n"
+            if not achou:
+                outliers_msg += "Nenhuma anomalia severa detectada nas colunas numéricas."
+            return outliers_msg
+
+        if "nulo" in pergunta or "vazio" in pergunta or "falta" in pergunta:
+            nulos = df.isnull().sum()
+            nulos = nulos[nulos > 0]
+            if not nulos.empty:
+                return f"Detectei falhas no preenchimento dos dados:\\n<pre>{nulos.to_string()}</pre>"
+            return "Excelente. Não há nenhum dado vazio ou nulo na base."
+            
+        if "duplicada" in pergunta or "repetida" in pergunta:
+            dups = df.duplicated().sum()
+            if dups > 0:
+                return f"⚠️ Atenção: Encontrei **{dups} linhas exatamente iguais** (duplicadas). Recomendo usar o Relatório de Impacto para limpá-las."
+            return "Base limpa. Não há linhas duplicadas."
+
+        if "media" in pergunta.replace('é','e') or "média" in pergunta:
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 0:
+                return f"Médias calculadas:\\n<pre>{df[num_cols].mean().round(2).to_string()}</pre>"
+            return "Não encontrei colunas com números para calcular a média."
+
+        if "soma" in pergunta or "total" in pergunta:
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 0:
+                return f"Somas acumuladas:\\n<pre>{df[num_cols].sum().round(2).to_string()}</pre>"
+            return "Não encontrei colunas com números para somar."
+
+        if "maior" in pergunta or "maximo" in pergunta.replace('á','a'):
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 0:
+                return f"Valores Máximos (Teto):\\n<pre>{df[num_cols].max().round(2).to_string()}</pre>"
+            return "Não há colunas numéricas."
+
+        if "menor" in pergunta or "minimo" in pergunta.replace('í','i'):
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 0:
+                return f"Valores Mínimos (Piso):\\n<pre>{df[num_cols].min().round(2).to_string()}</pre>"
+            return "Não há colunas numéricas."
+
+        if "correlacao" in pergunta.replace('ç','c').replace('ã','a'):
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 1:
+                return f"Matriz de Correlação Linear (Pearson):\\n<pre>{df[num_cols].corr().round(3).to_string()}</pre>"
+            return "Preciso de pelo menos duas colunas numéricas para calcular correlação."
+
+        if "linha" in pergunta or "tamanho" in pergunta or "quantas" in pergunta:
+            return f"A base possui **{len(df):,} linhas** cruzadas em **{len(df.columns)} colunas**."
+
+        return "Comando não reconhecido pelo motor NLP. Experimente perguntar sobre: **resumo, nulos, médias, totais, outliers, duplicadas ou correlação**."
+    
+    except Exception as e:
+        return f"Erro de processamento interno: {str(e)}"
+
+responder_pergunta()
+`;
+
+            try {
+                // Roda o script de IA no motor WebAssembly (Pyodide) sem internet
+                let respPython = await pyodideInstance.runPythonAsync(scriptChat);
+                
+                chatMessages.innerHTML += `
+                    <div class="flex justify-start">
+                        <div class="bg-emerald-900/20 border border-emerald-500/30 text-emerald-900 dark:text-emerald-100 p-4 rounded-xl max-w-[90%] text-sm shadow-sm">
+                            ${respPython}
+                        </div>
+                    </div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (err) {
+                chatMessages.innerHTML += `<div class="bg-red-900/20 text-red-400 p-3 rounded-xl max-w-[85%]">Falha local: ${err}</div>`;
+            }
+        }
+
+        // ==========================================
+        // EDITOR, ARQUIVOS E RELATÓRIO BI
+        // ==========================================
+        let tabs = [{ id: 1, name: 'main.py', content: '# Lexis Engine Online\nimport pandas as pd\n\n' }];
         let activeTabId = 1;
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), { mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true });
         editor.on("change", function() { let current = tabs.find(t => t.id === activeTabId); if (current) current.content = editor.getValue(); });
@@ -178,67 +290,44 @@
             const file = event.target.files[0]; if (!file) return;
             const extensao = file.name.split('.').pop().toLowerCase(); const reader = new FileReader();
             if (extensao === 'csv') {
-                if (pyodideCarregando) { outf("\nInfo: Aguarde a inicialização do motor de dados...\n"); return; }
+                if (pyodideCarregando) { outf("\nInfo: Aguarde o carregamento do sistema...\n"); return; }
                 reader.onload = function(e) {
                     const data = new Uint8Array(e.target.result); pyodideInstance.FS.writeFile("/" + file.name, data);
-                    ultimoArquivoCSV = file.name; document.getElementById("btn-agente").classList.remove("hidden"); 
-                    outf(`\nInfo: Base de dados conectada ('${file.name}'). Relatório de Impacto pronto.\n`);
+                    ultimoArquivoCSV = file.name; 
+                    document.getElementById("btn-agente").classList.remove("hidden"); 
+                    outf(`\n[SUCESSO] Base de dados '${file.name}' carregada em memória RAM.\n-> O Chatbot Analítico e o Relatório Executivo estão prontos para uso.\n`);
                 }; reader.readAsArrayBuffer(file);
             } else { reader.onload = function(e) { editor.setValue(e.target.result); }; reader.readAsText(file); }
             event.target.value = ''; 
         }
 
         function executarRelatorioImpacto() {
-            if (document.getElementById("engine-selector").value !== "pyodide") { outf("\nAviso: Mude para 'Motor de Dados' para gerar o Relatório Executivo.\n"); return; }
-            if (!ultimoArquivoCSV) { outf("\nAviso: Nenhuma base de dados anexada.\n"); return; }
-            outf(`\nProcessando: Gerando Relatório Executivo de Impacto para '${ultimoArquivoCSV}'...\n`);
+            if (document.getElementById("engine-selector").value !== "pyodide") { outf("\nAviso: Selecione o Motor de Dados.\n"); return; }
+            if (!ultimoArquivoCSV) { outf("\nAviso: Anexe um CSV primeiro.\n"); return; }
             
             const scriptBI = `
 import pandas as pd
 import numpy as np
 from js import document, window, Uint8Array, Blob
 
-arquivo = "/${ultimoArquivoCSV}"
-df = pd.read_csv(arquivo)
-
-print("="*60)
-print(f" 📊 RELATÓRIO EXECUTIVO DE IMPACTO & AUDITORIA CORPORATIVA")
-print("="*60)
-print(f" Arquivo Analisado : {arquivo.replace('/', '')}")
-print(f" Total de Registros: {len(df):,}")
-
-colunas_num = df.select_dtypes(include=[np.number]).columns
-col_financeira = next((c for c in colunas_num if 'valor' in c.lower() or 'custo' in c.lower() or 'repasse' in c.lower() or 'salario' in c.lower()), None)
-
+df = pd.read_csv("/${ultimoArquivoCSV}")
 df['Status_Auditoria'] = "Aprovado"
+
+# Regras de Negócio
 duplicadas = df.duplicated(keep=False)
 df.loc[duplicadas, 'Status_Auditoria'] = "Duplicidade Sistêmica"
 
+colunas_num = df.select_dtypes(include=[np.number]).columns
 for col in colunas_num:
-    negativos = df[col] < 0
-    if negativos.any():
-        df.loc[negativos, 'Status_Auditoria'] = f"Erro Crítico ({col} Negativo)"
+    df.loc[df[col] < 0, 'Status_Auditoria'] = f"Erro Crítico ({col} Negativo)"
 
 for col in df.columns:
     if col != 'Status_Auditoria':
-        nulos = df[col].isnull()
-        if nulos.any():
-            df.loc[nulos, 'Status_Auditoria'] = f"Dado Faltante ({col})"
+        df.loc[df[col].isnull(), 'Status_Auditoria'] = f"Dado Faltante ({col})"
 
-total_erros = len(df[df['Status_Auditoria'] != "Aprovado"])
-taxa_conformidade = ((len(df) - total_erros) / len(df)) * 100
-
-print(f" Registros Válidos : {len(df) - total_erros:,} ({taxa_conformidade:.1f}%)")
-print(f" Registros com Erro: {total_erros:,} ({(100 - taxa_conformidade):.1f}%)")
-
-if col_financeira:
-    impacto_financeiro = df.loc[df['Status_Auditoria'] != "Aprovado", col_financeira].sum()
-    print(f" Impacto Financeiro dos Erros: R$ {abs(impacto_financeiro):,.2f}")
-
-print("="*60)
-
-df_final = df[['Status_Auditoria'] + [c for c in df.columns if c != 'Status_Auditoria']]
-nome_saida = "Relatorio_Executivo_" + "${ultimoArquivoCSV}"
+# Download
+df_final = df.sort_values(by='Status_Auditoria', ascending=False)
+nome_saida = "Relatorio_Auditoria_" + "${ultimoArquivoCSV}"
 df_final.to_csv(nome_saida, index=False, encoding='utf-8-sig')
 
 with open(nome_saida, 'rb') as f: conteudo = f.read()
@@ -251,11 +340,10 @@ link.href = url
 link.download = nome_saida
 link.click()
 window.URL.revokeObjectURL(url)
-
-print(f"Status: Relatório Executivo '{nome_saida}' gerado e baixado com sucesso.")
+print("Relatório de Impacto gerado e baixado no dispositivo.")
 `;
             pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
-            pyodideInstance.runPythonAsync(scriptBI).catch((err) => outf("\nErro de Processamento BI: " + err));
+            pyodideInstance.runPythonAsync(scriptBI).catch((err) => outf("Erro BI: " + err));
         }
 
         function runPython() {
@@ -265,17 +353,15 @@ print(f"Status: Relatório Executivo '{nome_saida}' gerado e baixado com sucesso
                 if (prog.includes("import turtle")) turtleBox.classList.remove("hidden");
                 Sk.TurtleGraphics = Sk.TurtleGraphics || {}; Sk.TurtleGraphics.target = 'mycanvas'; Sk.pre = "output";
                 Sk.configure({ output: outf, read: function(x) { return Sk.builtinFiles["files"][x]; } });
-                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).then(() => outf("\nProcesso finalizado."), (err) => outf("\nErro de Execução: " + err));
-            } else if (motor === "pyodide") { pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") }); pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro de Execução:\n" + err)); }
+                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).catch((err) => outf("\nErro: " + err));
+            } else if (motor === "pyodide") { 
+                pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") }); 
+                pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro Python:\n" + err)); 
+            }
         }
 
         let guidesVisible = false;
-        function toggleGuides() {
-            guidesVisible = !guidesVisible;
-            document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible);
-            document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : "";
-            document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : "";
-        }
+        function toggleGuides() { guidesVisible = !guidesVisible; document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible); document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : ""; document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : ""; }
         function renderTabs() {
             const container = document.getElementById('tabs-container'); container.innerHTML = '';
             tabs.forEach(tab => { let isActive = tab.id === activeTabId; let tabEl = document.createElement('div'); tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'}`; tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`; container.appendChild(tabEl); });
@@ -286,7 +372,7 @@ print(f"Status: Relatório Executivo '{nome_saida}' gerado e baixado com sucesso
         function insertCode(text) { editor.replaceRange(text, editor.getCursor()); editor.focus(); }
         function toggleTheme() { document.documentElement.classList.toggle('dark'); document.getElementById('theme-icon-sun').classList.toggle('hidden'); document.getElementById('theme-icon-moon').classList.toggle('hidden'); }
         function stopExecution() { document.getElementById("output").innerHTML += "\n\nProcesso interrompido."; document.getElementById("mycanvas").innerHTML = ""; }
-        function clearConsole() { document.getElementById("output").innerHTML = "Lexis AI Runtime Environment iniciado.\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
+        function clearConsole() { document.getElementById("output").innerHTML = "Lexis AI Runtime Environment.\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
         renderTabs();
     </script>
 </body>
