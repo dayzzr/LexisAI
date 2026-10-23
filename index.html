@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lexis AI — IDE Híbrida</title>
-
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,83 +11,53 @@
             theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } }
         }
     </script>
-
-    <!-- CodeMirror (Editor) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/theme/dracula.css">
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/mode/python/python.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/addon/edit/closebrackets.js"></script>
-
-    <!-- MOTOR 1: Skulpt (Gráficos e Turtle) -->
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
-
-    <!-- MOTOR 2: Pyodide (Data Science e Pandas) -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-
     <style>
-        .CodeMirror { 
-            position: absolute; top: 0; bottom: 0; left: 0; right: 0;
-            height: 100%; font-family: 'SF Mono', monospace; font-size: 15px; 
-        }
+        .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 15px; }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
-        
-        .CodeMirror.show-guides .CodeMirror-line {
-            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px);
-            background-size: 36px 100%; 
-            background-repeat: repeat-y;
-            background-position: 4px 0; 
-        }
-
-        select {
-            appearance: none; -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto;
-        }
+        .CodeMirror.show-guides .CodeMirror-line { background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px); background-size: 36px 100%; background-repeat: repeat-y; background-position: 4px 0; }
+        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
-
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <h1 class="text-xl font-bold tracking-tight border-r border-gray-300 dark:border-gray-700 pr-4">Lexis AI</h1>
+        
+        <!-- CORREÇÃO DO LOGO AQUI -->
+        <div class="flex items-center gap-3 pr-4 border-r border-gray-300 dark:border-gray-700">
+            <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
+            <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <!-- Seletor Limpo -->
             <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer">
                 <option value="skulpt">Motor Gráfico</option>
                 <option value="pyodide">Motor de Dados</option>
             </select>
-
             <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
                 Anexar Arquivo
             </label>
             <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
-
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
                 <span id="guides-icon" class="text-gray-400">|</span> Guias
             </button>
-
-            <!-- NOVO: BOTÃO AGENTE DE IA (Estilo Corporativo) -->
             <button onclick="executarAgenteIA()" id="btn-agente" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 hidden">
                 Auditoria Inteligente
             </button>
-
             <button onclick="toggleTheme()" class="p-2 ml-1 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
                 <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
                 <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
-            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span>Parar</span>
-            </button>
-            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span>Executar Script</span>
-            </button>
+            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Parar</span></button>
+            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95"><span>Executar Script</span></button>
         </div>
     </header>
-
     <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
@@ -99,11 +67,7 @@
                     <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-semibold">Limpar</button>
                 </div>
             </div>
-            
-            <div id="editor-wrapper" class="flex-1 relative overflow-hidden">
-                <textarea id="code-editor"></textarea>
-            </div>
-            
+            <div id="editor-wrapper" class="flex-1 relative overflow-hidden"><textarea id="code-editor"></textarea></div>
             <div class="bg-gray-50 dark:bg-[#1a1a1c] border-t dark:border-apple-borderDark p-2 flex items-center gap-2 overflow-x-auto rounded-b-2xl">
                 <button onclick="insertCode('    ')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">Tab</button>
                 <button onclick="insertCode(':')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">:</button>
@@ -113,19 +77,14 @@
                 <button onclick="insertCode('{}')" class="bg-white dark:bg-apple-surfaceDark border px-3 py-1.5 rounded-lg text-sm font-mono shadow-sm">{ }</button>
             </div>
         </section>
-
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
                 <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal / Output</span>
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
-            
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
-                <!-- Terminal com cor de fonte profissional (gray-300) -->
                 <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado.</div>
-                <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
-                    <div id="mycanvas"></div>
-                </div>
+                <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative"><div id="mycanvas"></div></div>
             </div>
         </section>
     </main>
@@ -134,192 +93,71 @@
         let pyodideInstance = null;
         let pyodideCarregando = true;
         let ultimoArquivoCSV = ""; 
-
-        function outf(text) { 
-            let output = document.getElementById("output"); 
-            output.innerHTML += text; 
-            output.scrollTop = output.scrollHeight; 
-        }
-
+        function outf(text) { let output = document.getElementById("output"); output.innerHTML += text; output.scrollTop = output.scrollHeight; }
         async function initPyodide() {
-            try {
-                pyodideInstance = await loadPyodide();
-                await pyodideInstance.loadPackage("pandas");
-                pyodideCarregando = false;
-                outf("\nInfo: Motor de Dados inicializado.\n");
-            } catch (err) {
-                outf("\nErro de Sistema: " + err);
-            }
+            try { pyodideInstance = await loadPyodide(); await pyodideInstance.loadPackage("pandas"); pyodideCarregando = false; outf("\nInfo: Motor de Dados inicializado.\n");
+            } catch (err) { outf("\nErro de Sistema: " + err); }
         }
         initPyodide();
-
         let tabs = [{ id: 1, name: 'main.py', content: '# Ambiente de desenvolvimento pronto.' }];
         let activeTabId = 1;
-        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
-            mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
-        });
-
-        editor.on("change", function() {
-            let current = tabs.find(t => t.id === activeTabId);
-            if (current) current.content = editor.getValue();
-        });
-
+        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), { mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true });
+        editor.on("change", function() { let current = tabs.find(t => t.id === activeTabId); if (current) current.content = editor.getValue(); });
         function importarArquivoInteligente(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const extensao = file.name.split('.').pop().toLowerCase();
-            const reader = new FileReader();
-
+            const file = event.target.files[0]; if (!file) return;
+            const extensao = file.name.split('.').pop().toLowerCase(); const reader = new FileReader();
             if (extensao === 'csv') {
-                if (pyodideCarregando) {
-                    outf("\nInfo: Aguarde a inicialização do motor de dados...\n"); return;
-                }
+                if (pyodideCarregando) { outf("\nInfo: Aguarde a inicialização do motor de dados...\n"); return; }
                 reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    pyodideInstance.FS.writeFile("/" + file.name, data);
-                    ultimoArquivoCSV = file.name; 
-                    document.getElementById("btn-agente").classList.remove("hidden"); 
+                    const data = new Uint8Array(e.target.result); pyodideInstance.FS.writeFile("/" + file.name, data);
+                    ultimoArquivoCSV = file.name; document.getElementById("btn-agente").classList.remove("hidden"); 
                     outf(`\nInfo: Base de dados conectada ('${file.name}').\nInfo: Ferramenta de Auditoria Inteligente habilitada.\n`);
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                reader.onload = function(e) { editor.setValue(e.target.result); };
-                reader.readAsText(file);
-            }
+                }; reader.readAsArrayBuffer(file);
+            } else { reader.onload = function(e) { editor.setValue(e.target.result); }; reader.readAsText(file); }
             event.target.value = ''; 
         }
-
-        // ==========================================
-        // O AGENTE DE IA (ESTÉTICA CORPORATIVA)
-        // ==========================================
         function executarAgenteIA() {
-            if (document.getElementById("engine-selector").value !== "pyodide") {
-                outf("\nAviso: Mude para 'Motor de Dados' para executar a Auditoria Inteligente.\n");
-                return;
-            }
-            if (!ultimoArquivoCSV) {
-                outf("\nAviso: Nenhuma base de dados anexada.\n"); return;
-            }
-
+            if (document.getElementById("engine-selector").value !== "pyodide") { outf("\nAviso: Mude para 'Motor de Dados' para executar a Auditoria Inteligente.\n"); return; }
+            if (!ultimoArquivoCSV) { outf("\nAviso: Nenhuma base de dados anexada.\n"); return; }
             outf(`\nProcessando: Iniciando varredura na base '${ultimoArquivoCSV}'...\n`);
-            
-            // Script do agente com logs limpos e estruturados
             const scriptIA = `
-import pandas as pd
-import numpy as np
-from js import document, window, Uint8Array, Blob
-
-arquivo = "/${ultimoArquivoCSV}"
-print("--------------------------------------------------")
-print(f"RELATÓRIO DE AUDITORIA: {arquivo.replace('/', '')}")
-print("--------------------------------------------------")
-
-df = pd.read_csv(arquivo)
-df['Status_Auditoria'] = ""
-
-# Duplicidade
-duplicadas = df.duplicated(keep=False)
-df.loc[duplicadas, 'Status_Auditoria'] += "Duplicidade Sistêmica; "
-
-# Varredura Nulos
+import pandas as pd\nimport numpy as np\nfrom js import document, window, Uint8Array, Blob\narquivo = "/${ultimoArquivoCSV}"
+print("--------------------------------------------------")\nprint(f"RELATÓRIO DE AUDITORIA: {arquivo.replace('/', '')}")\nprint("--------------------------------------------------")
+df = pd.read_csv(arquivo)\ndf['Status_Auditoria'] = ""\nduplicadas = df.duplicated(keep=False)\ndf.loc[duplicadas, 'Status_Auditoria'] += "Duplicidade Sistêmica; "
 for col in df.columns:
     if col != 'Status_Auditoria':
-        nulos = df[col].isnull()
-        if nulos.any():
-            df.loc[nulos, 'Status_Auditoria'] += f"Falta Dado ({col}); "
-
-# Varredura Numérica e Outliers
+        nulos = df[col].isnull()\n        if nulos.any(): df.loc[nulos, 'Status_Auditoria'] += f"Falta Dado ({col}); "
 colunas_num = df.select_dtypes(include=[np.number]).columns
 for col in colunas_num:
-    negativos = df[col] < 0
-    if negativos.any():
-        df.loc[negativos, 'Status_Auditoria'] += f"Valor Negativo Inválido ({col}); "
-    
-    limite = df[col].mean() + (4 * df[col].std())
-    outliers = df[col] > limite
-    if outliers.any():
-        df.loc[outliers, 'Status_Auditoria'] += f"Outlier Detectado ({col}); "
-
-# Consolidando Aprovados
-df.loc[df['Status_Auditoria'] == "", 'Status_Auditoria'] = "Aprovado"
-
-total = len(df)
-aprov = len(df[df['Status_Auditoria'] == 'Aprovado'])
-print(f"Registros processados : {total}")
-print(f"Lotes aprovados       : {aprov}")
-print(f"Lotes com falha       : {total - aprov}")
-
-# Exportando Arquivo
-df_final = df[['Status_Auditoria'] + [c for c in df.columns if c != 'Status_Auditoria']]
-df_final = df_final.sort_values(by='Status_Auditoria', ascending=False)
-
-nome_saida = "Auditoria_" + "${ultimoArquivoCSV}"
-df_final.to_csv(nome_saida, index=False, encoding='utf-8-sig')
-
-with open(nome_saida, 'rb') as f:
-    conteudo = f.read()
-    
-js_array = Uint8Array.new(len(conteudo))
-js_array.assign(conteudo)
-blob = Blob.new([js_array], type="text/csv;charset=utf-8-sig")
-url = window.URL.createObjectURL(blob)
-link = document.createElement("a")
-link.href = url
-link.download = nome_saida
-link.click()
-window.URL.revokeObjectURL(url)
-
+    negativos = df[col] < 0\n    if negativos.any(): df.loc[negativos, 'Status_Auditoria'] += f"Valor Negativo Inválido ({col}); "
+    limite = df[col].mean() + (4 * df[col].std())\n    outliers = df[col] > limite\n    if outliers.any(): df.loc[outliers, 'Status_Auditoria'] += f"Outlier Detectado ({col}); "
+df.loc[df['Status_Auditoria'] == "", 'Status_Auditoria'] = "Aprovado"\ntotal = len(df)\naprov = len(df[df['Status_Auditoria'] == 'Aprovado'])
+print(f"Registros processados : {total}")\nprint(f"Lotes aprovados       : {aprov}")\nprint(f"Lotes com falha       : {total - aprov}")
+df_final = df[['Status_Auditoria'] + [c for c in df.columns if c != 'Status_Auditoria']]\ndf_final = df_final.sort_values(by='Status_Auditoria', ascending=False)
+nome_saida = "Auditoria_" + "${ultimoArquivoCSV}"\ndf_final.to_csv(nome_saida, index=False, encoding='utf-8-sig')
+with open(nome_saida, 'rb') as f: conteudo = f.read()
+js_array = Uint8Array.new(len(conteudo))\njs_array.assign(conteudo)\nblob = Blob.new([js_array], type="text/csv;charset=utf-8-sig")
+url = window.URL.createObjectURL(blob)\nlink = document.createElement("a")\nlink.href = url\nlink.download = nome_saida\nlink.click()\nwindow.URL.revokeObjectURL(url)
 print(f"\\nStatus: Auditoria concluída. Relatório '{nome_saida}' exportado.")
 `;
-
             pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
             pyodideInstance.runPythonAsync(scriptIA).catch((err) => outf("\nErro de Processamento: " + err));
         }
-
-        // ==========================================
-        // FUNÇÕES PADRÃO DO EDITOR DA IDE
-        // ==========================================
         function runPython() {
-            let prog = editor.getValue();
-            let output = document.getElementById("output");
-            let turtleBox = document.getElementById("turtle-container");
-            let motor = document.getElementById("engine-selector").value;
-            
-            output.innerHTML = "Executando script...\n";
-            turtleBox.classList.add("hidden");
-            document.getElementById("mycanvas").innerHTML = "";
-
+            let prog = editor.getValue(); let output = document.getElementById("output"); let turtleBox = document.getElementById("turtle-container"); let motor = document.getElementById("engine-selector").value;
+            output.innerHTML = "Executando script...\n"; turtleBox.classList.add("hidden"); document.getElementById("mycanvas").innerHTML = "";
             if (motor === "skulpt") {
                 if (prog.includes("import turtle")) turtleBox.classList.remove("hidden");
-                Sk.TurtleGraphics = Sk.TurtleGraphics || {};
-                Sk.TurtleGraphics.target = 'mycanvas';
-                Sk.pre = "output";
+                Sk.TurtleGraphics = Sk.TurtleGraphics || {}; Sk.TurtleGraphics.target = 'mycanvas'; Sk.pre = "output";
                 Sk.configure({ output: outf, read: function(x) { return Sk.builtinFiles["files"][x]; } });
-                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true))
-                    .then(() => outf("\nProcesso finalizado."), (err) => outf("\nErro de Execução: " + err));
-            } else if (motor === "pyodide") {
-                pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
-                pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro de Execução:\n" + err));
-            }
+                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).then(() => outf("\nProcesso finalizado."), (err) => outf("\nErro de Execução: " + err));
+            } else if (motor === "pyodide") { pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") }); pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro de Execução:\n" + err)); }
         }
-
         let guidesVisible = false;
-        function toggleGuides() {
-            guidesVisible = !guidesVisible;
-            document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible);
-            document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : "";
-            document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : "";
-        }
+        function toggleGuides() { guidesVisible = !guidesVisible; document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible); document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : ""; document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : ""; }
         function renderTabs() {
             const container = document.getElementById('tabs-container'); container.innerHTML = '';
-            tabs.forEach(tab => {
-                let isActive = tab.id === activeTabId;
-                let tabEl = document.createElement('div');
-                tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'}`;
-                tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`;
-                container.appendChild(tabEl);
-            });
+            tabs.forEach(tab => { let isActive = tab.id === activeTabId; let tabEl = document.createElement('div'); tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'}`; tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`; container.appendChild(tabEl); });
         }
         function switchTab(id) { activeTabId = id; editor.setValue(tabs.find(t => t.id === id).content); renderTabs(); }
         function addNewTab() { let newId = Date.now(); tabs.push({ id: newId, name: `script_${tabs.length + 1}.py`, content: '' }); switchTab(newId); }
