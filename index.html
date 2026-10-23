@@ -25,14 +25,12 @@
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         .CodeMirror.show-guides .CodeMirror-line { background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px); background-size: 36px 100%; background-repeat: repeat-y; background-position: 4px 0; }
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
-        
-        /* Ajuste do modal do chat para leitura de dados longos */
         #chat-messages pre { white-space: pre-wrap; font-family: 'SF Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 5px;}
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
     
-    <!-- MODAL DO CHATBOT NATIVO INTELIGENTE -->
+    <!-- MODAL DO CHATBOT NATIVO -->
     <div id="chat-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-200 dark:border-gray-700 flex flex-col h-[600px] overflow-hidden">
             <div class="bg-gray-100 dark:bg-[#1C1C1E] px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -45,13 +43,11 @@
             
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-sm">
                 <div class="bg-emerald-900/40 text-emerald-100 p-4 rounded-xl border border-emerald-700/50">
-                    <strong>Sistema Online. 100% Local e Seguro.</strong><br><br>
-                    Posso analisar sua base de dados instantaneamente. Experimente me pedir algo como:<br>
-                    • <em>"Qual o resumo da base?"</em><br>
-                    • <em>"Encontre os outliers e anomalias"</em><br>
-                    • <em>"Calcule a média e soma de tudo"</em><br>
-                    • <em>"Existem dados nulos ou duplicados?"</em><br>
-                    • <em>"Gere a matriz de correlação"</em>
+                    Posso analisar sua base de dados instantaneamente. Experimente pedir algo como:<br><br>
+                    • <em>"Qual o resumo da base?"</em> ou <em>"Amostra dos dados"</em><br>
+                    • <em>"Encontre os outliers"</em> ou <em>"Existem nulos?"</em><br>
+                    • <em>"Qual a mediana e desvio padrão?"</em><br>
+                    • <em>"Contagem de categorias"</em>
                 </div>
             </div>
 
@@ -62,10 +58,29 @@
         </div>
     </div>
 
+    <!-- MODAL DE INFORMAÇÕES DE ARQUITETURA -->
+    <div id="info-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="bg-gray-100 dark:bg-[#1C1C1E] px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h2 class="font-bold text-sm">Arquitetura e Privacidade</h2>
+                <button onclick="fecharInfo()" class="text-gray-400 hover:text-white font-bold text-sm">✕</button>
+            </div>
+            <div class="p-5 text-sm space-y-4 text-gray-700 dark:text-gray-300">
+                <p><strong>Motor de Execução Local:</strong> O Lexis AI foi construído utilizando WebAssembly (Pyodide e Skulpt), o que permite rodar Python e análises complexas de Data Science diretamente na memória RAM do seu navegador.</p>
+                <p><strong>Privacidade Estrutural:</strong> Ao anexar arquivos ou rodar o Copilot Nativo, nenhum dado, tabela ou script é enviado para servidores externos. O processamento é 100% contido no seu dispositivo.</p>
+                <p><strong>Independência:</strong> O sistema não depende de chaves de API, driblando restrições de firewalls corporativos e garantindo estabilidade offline contínua.</p>
+            </div>
+        </div>
+    </div>
+
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
-        <div class="flex items-center gap-3 pr-4 border-r border-gray-300 dark:border-gray-700">
+        <div class="flex items-center gap-2 pr-4 border-r border-gray-300 dark:border-gray-700">
             <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
+            <!-- Botão de Info Discreto -->
+            <button onclick="abrirInfo()" class="text-gray-400 hover:text-apple-blue transition-colors ml-1" title="Sobre o Lexis AI">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+            </button>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
@@ -74,9 +89,9 @@
                 <option value="pyodide">Motor de Dados</option>
             </select>
             <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
-                Anexar Arquivo CSV
+                Anexar Arquivo
             </label>
-            <input id="file-upload" type="file" accept=".csv" class="hidden" onchange="importarArquivoInteligente(event)" />
+            <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
             
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
                 <span id="guides-icon" class="text-gray-400">|</span> Guias
@@ -86,7 +101,7 @@
                 Relatório de Impacto (BI)
             </button>
 
-            <!-- BOTÃO DO COPILOT NATIVO OFF-GRID -->
+            <!-- BOTÃO DO COPILOT NATIVO -->
             <button onclick="abrirChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-emerald-400">
                 💬 Copilot Analítico
             </button>
@@ -100,7 +115,7 @@
         </div>
     </header>
 
-    <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
+    <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5 mb-2">
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
                 <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
@@ -117,11 +132,16 @@
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
-                <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado (Modo Offline Seguro).</div>
+                <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado.</div>
                 <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative"><div id="mycanvas"></div></div>
             </div>
         </section>
     </main>
+
+    <!-- ASSINATURA -->
+    <footer class="w-full text-center py-4 text-xs text-gray-500 dark:text-gray-400 border-t border-apple-borderLight dark:border-apple-borderDark mt-auto">
+        Criado e desenvolvido por Renato Dias Ramalho
+    </footer>
 
     <script>
         let pyodideInstance = null;
@@ -140,6 +160,9 @@
             }
         }
         initPyodide();
+
+        function abrirInfo() { document.getElementById("info-modal").classList.remove("hidden"); }
+        function fecharInfo() { document.getElementById("info-modal").classList.add("hidden"); }
 
         // ==========================================
         // CHATBOT NATIVO INTELIGENTE (SEM API)
@@ -163,7 +186,6 @@
             if (!texto) return;
 
             const chatMessages = document.getElementById("chat-messages");
-            // Mensagem do usuário
             chatMessages.innerHTML += `
                 <div class="flex justify-end">
                     <div class="bg-gray-200 dark:bg-[#3A3A3C] text-black dark:text-white p-3 rounded-xl max-w-[85%] text-sm shadow-sm">
@@ -173,7 +195,6 @@
             inputEl.value = "";
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Script Python do Agente NLP (Roda internamente no Pyodide)
             const scriptChat = `
 import pandas as pd
 import numpy as np
@@ -184,11 +205,11 @@ def responder_pergunta():
         df = pd.read_csv("/${ultimoArquivoCSV}")
         
         if "ajuda" in pergunta or "comandos" in pergunta or "o que voce faz" in pergunta.replace('ç','c'):
-            return "Aqui estão as análises que posso fazer instantaneamente:\\n- 📈 **Resumo/Estatística**: Gera um quadro descritivo.\\n- ⚠️ **Outliers/Anomalias**: Detecta dados corrompidos usando cálculo de quartis.\\n- 🔍 **Nulos/Vazios**: Localiza buracos na base.\\n- 🧮 **Média/Soma/Máximo/Mínimo**: Calcula os KPIs financeiros e operacionais.\\n- 🔄 **Duplicadas**: Conta registros clonados.\\n- 🕸️ **Correlação**: Mostra se variáveis impactam umas nas outras."
+            return "Aqui estão as análises que posso fazer instantaneamente:\\n- 📈 **Resumo/Estatística**: Gera um quadro descritivo.\\n- ⚠️ **Outliers/Anomalias**: Detecta dados corrompidos usando cálculo de quartis.\\n- 🔍 **Nulos/Vazios**: Localiza buracos na base.\\n- 🧮 **Média, Mediana e Desvio Padrão**: Análises estatísticas diretas.\\n- 🔄 **Duplicadas**: Conta registros clonados.\\n- 🕸️ **Correlação**: Mostra se variáveis impactam umas nas outras.\\n- 📋 **Categorias/Frequência**: Conta as ocorrências em colunas de texto.\\n- 🔎 **Amostra**: Mostra as primeiras linhas da base."
 
         if "resumo" in pergunta or "estatistica" in pergunta.replace('í','i') or "describe" in pergunta:
             resumo = df.describe().round(2).to_string()
-            return f"Aqui está o sumário executivo da base:\\n<pre>{resumo}</pre>"
+            return f"Aqui está o sumário estatístico da base:\\n<pre>{resumo}</pre>"
             
         if "outlier" in pergunta or "anomalia" in pergunta or "estranho" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
@@ -212,26 +233,51 @@ def responder_pergunta():
             nulos = df.isnull().sum()
             nulos = nulos[nulos > 0]
             if not nulos.empty:
-                return f"Detectei falhas no preenchimento dos dados:\\n<pre>{nulos.to_string()}</pre>"
+                return f"Detectei dados faltantes nas colunas abaixo:\\n<pre>{nulos.to_string()}</pre>"
             return "Excelente. Não há nenhum dado vazio ou nulo na base."
             
         if "duplicada" in pergunta or "repetida" in pergunta:
             dups = df.duplicated().sum()
             if dups > 0:
-                return f"⚠️ Atenção: Encontrei **{dups} linhas exatamente iguais** (duplicadas). Recomendo usar o Relatório de Impacto para limpá-las."
+                return f"⚠️ Atenção: Encontrei **{dups} linhas exatamente iguais** (duplicadas)."
             return "Base limpa. Não há linhas duplicadas."
 
         if "media" in pergunta.replace('é','e') or "média" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
             if len(num_cols) > 0:
                 return f"Médias calculadas:\\n<pre>{df[num_cols].mean().round(2).to_string()}</pre>"
-            return "Não encontrei colunas com números para calcular a média."
+            return "Não encontrei colunas com números."
+
+        if "mediana" in pergunta:
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 0:
+                return f"Medianas (valor central da distribuição):\\n<pre>{df[num_cols].median().round(2).to_string()}</pre>"
+            return "Não encontrei colunas com números para calcular a mediana."
+
+        if "desvio" in pergunta or "variancia" in pergunta.replace('â','a'):
+            num_cols = df.select_dtypes(include=[np.number]).columns
+            if len(num_cols) > 0:
+                return f"Desvio Padrão (Volatilidade e dispersão):\\n<pre>{df[num_cols].std().round(2).to_string()}</pre>"
+            return "Não encontrei colunas com números."
 
         if "soma" in pergunta or "total" in pergunta:
             num_cols = df.select_dtypes(include=[np.number]).columns
             if len(num_cols) > 0:
                 return f"Somas acumuladas:\\n<pre>{df[num_cols].sum().round(2).to_string()}</pre>"
-            return "Não encontrei colunas com números para somar."
+            return "Não encontrei colunas com números."
+
+        if "categoria" in pergunta or "frequencia" in pergunta.replace('ê','e') or "contagem" in pergunta:
+            cat_cols = df.select_dtypes(include=['object']).columns
+            if len(cat_cols) > 0:
+                col = cat_cols[0]  # Pega a primeira coluna de texto por padrão
+                return f"Contagem das principais ocorrências (Coluna '{col}'):\\n<pre>{df[col].value_counts().head(10).to_string()}</pre>"
+            return "Não identifiquei colunas de texto/categorias claras para fazer contagem."
+
+        if "amostra" in pergunta or "exemplo" in pergunta or "head" in pergunta:
+            return f"Mostrando as primeiras 5 linhas da base:\\n<pre>{df.head().to_string()}</pre>"
+
+        if "tipo" in pergunta or "formato" in pergunta:
+            return f"Tipos de dados armazenados (DataTypes):\\n<pre>{df.dtypes.to_string()}</pre>"
 
         if "maior" in pergunta or "maximo" in pergunta.replace('á','a'):
             num_cols = df.select_dtypes(include=[np.number]).columns
@@ -248,13 +294,13 @@ def responder_pergunta():
         if "correlacao" in pergunta.replace('ç','c').replace('ã','a'):
             num_cols = df.select_dtypes(include=[np.number]).columns
             if len(num_cols) > 1:
-                return f"Matriz de Correlação Linear (Pearson):\\n<pre>{df[num_cols].corr().round(3).to_string()}</pre>"
+                return f"Matriz de Correlação Linear (Como variáveis afetam umas às outras):\\n<pre>{df[num_cols].corr().round(3).to_string()}</pre>"
             return "Preciso de pelo menos duas colunas numéricas para calcular correlação."
 
         if "linha" in pergunta or "tamanho" in pergunta or "quantas" in pergunta:
-            return f"A base possui **{len(df):,} linhas** cruzadas em **{len(df.columns)} colunas**."
+            return f"A base possui **{len(df):,} linhas** e **{len(df.columns)} colunas**."
 
-        return "Comando não reconhecido pelo motor NLP. Experimente perguntar sobre: **resumo, nulos, médias, totais, outliers, duplicadas ou correlação**."
+        return "Comando não mapeado. Experimente perguntar sobre: **resumo, nulos, média, mediana, desvio, outliers, duplicadas, tipos, amostra ou categorias**."
     
     except Exception as e:
         return f"Erro de processamento interno: {str(e)}"
@@ -263,12 +309,10 @@ responder_pergunta()
 `;
 
             try {
-                // Roda o script de IA no motor WebAssembly (Pyodide) sem internet
                 let respPython = await pyodideInstance.runPythonAsync(scriptChat);
-                
                 chatMessages.innerHTML += `
                     <div class="flex justify-start">
-                        <div class="bg-emerald-900/20 border border-emerald-500/30 text-emerald-900 dark:text-emerald-100 p-4 rounded-xl max-w-[90%] text-sm shadow-sm">
+                        <div class="bg-emerald-900/20 border border-emerald-500/30 text-emerald-900 dark:text-emerald-100 p-4 rounded-xl max-w-[90%] text-sm shadow-sm overflow-x-auto">
                             ${respPython}
                         </div>
                     </div>`;
@@ -295,7 +339,7 @@ responder_pergunta()
                     const data = new Uint8Array(e.target.result); pyodideInstance.FS.writeFile("/" + file.name, data);
                     ultimoArquivoCSV = file.name; 
                     document.getElementById("btn-agente").classList.remove("hidden"); 
-                    outf(`\n[SUCESSO] Base de dados '${file.name}' carregada em memória RAM.\n-> O Chatbot Analítico e o Relatório Executivo estão prontos para uso.\n`);
+                    outf(`\n[SUCESSO] Arquivo de dados carregado na RAM.\n-> O Chatbot Analítico e o Relatório Executivo estão prontos.\n`);
                 }; reader.readAsArrayBuffer(file);
             } else { reader.onload = function(e) { editor.setValue(e.target.result); }; reader.readAsText(file); }
             event.target.value = ''; 
@@ -313,7 +357,6 @@ from js import document, window, Uint8Array, Blob
 df = pd.read_csv("/${ultimoArquivoCSV}")
 df['Status_Auditoria'] = "Aprovado"
 
-# Regras de Negócio
 duplicadas = df.duplicated(keep=False)
 df.loc[duplicadas, 'Status_Auditoria'] = "Duplicidade Sistêmica"
 
@@ -325,7 +368,6 @@ for col in df.columns:
     if col != 'Status_Auditoria':
         df.loc[df[col].isnull(), 'Status_Auditoria'] = f"Dado Faltante ({col})"
 
-# Download
 df_final = df.sort_values(by='Status_Auditoria', ascending=False)
 nome_saida = "Relatorio_Auditoria_" + "${ultimoArquivoCSV}"
 df_final.to_csv(nome_saida, index=False, encoding='utf-8-sig')
@@ -372,7 +414,7 @@ print("Relatório de Impacto gerado e baixado no dispositivo.")
         function insertCode(text) { editor.replaceRange(text, editor.getCursor()); editor.focus(); }
         function toggleTheme() { document.documentElement.classList.toggle('dark'); document.getElementById('theme-icon-sun').classList.toggle('hidden'); document.getElementById('theme-icon-moon').classList.toggle('hidden'); }
         function stopExecution() { document.getElementById("output").innerHTML += "\n\nProcesso interrompido."; document.getElementById("mycanvas").innerHTML = ""; }
-        function clearConsole() { document.getElementById("output").innerHTML = "Lexis AI Runtime Environment.\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
+        function clearConsole() { document.getElementById("output").innerHTML = "Lexis AI Runtime Environment iniciado.\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
         renderTabs();
     </script>
 </body>
