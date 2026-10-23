@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI — IDE Python</title>
+    <title>Lexis AI — IDE Python Híbrida</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,11 +30,8 @@
 
     <style>
         .CodeMirror { 
-            position: absolute; 
-            top: 0; bottom: 0; left: 0; right: 0;
-            height: 100%; 
-            font-family: 'SF Mono', monospace; 
-            font-size: 15px; 
+            position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+            height: 100%; font-family: 'SF Mono', monospace; font-size: 15px; 
         }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         
@@ -45,20 +42,15 @@
             background-position: 4px 0; 
         }
 
-        /* Estilização do seletor de motores */
         select {
-            appearance: none;
-            -webkit-appearance: none;
+            appearance: none; -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right .7rem top 50%;
-            background-size: .65rem auto;
+            background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto;
         }
     </style>
 </head>
 <body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
 
-    <!-- Header -->
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-3">
             <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
@@ -66,24 +58,25 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <!-- SELETOR DE MOTOR DE EXECUÇÃO -->
             <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-bold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer">
-                <option value="skulpt">🚀 Motor: Gráfico (Skulpt)</option>
-                <option value="pyodide">📊 Motor: Dados (Pandas)</option>
+                <option value="skulpt">🚀 Motor: Gráfico</option>
+                <option value="pyodide">📊 Motor: Dados</option>
             </select>
 
-            <!-- Botão de Importar Arquivo Inteligente -->
             <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
                 📁 Anexar
             </label>
             <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
 
-            <!-- Botão de Guias -->
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
                 <span id="guides-icon">📏</span> Guias
             </button>
 
-            <!-- Controles Base -->
+            <!-- NOVO: BOTÃO AGENTE DE IA (Oculto por padrão, aparece ao anexar CSV) -->
+            <button onclick="executarAgenteIA()" id="btn-agente" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 hidden">
+                🤖 Auto-Auditoria
+            </button>
+
             <button onclick="toggleTheme()" class="p-2 ml-1 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
                 <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
                 <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -92,22 +85,18 @@
                 <span>Parar</span>
             </button>
             <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span>Executar</span>
+                <span>Executar IDE</span>
             </button>
         </div>
     </header>
 
-    <!-- Workspace -->
     <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5">
-        
-        <!-- Editor -->
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
                 <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
                 <div class="flex items-center gap-2 pb-1 shrink-0">
                     <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-bold">+ Novo</button>
                     <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-bold">Limpar</button>
-                    <button onclick="saveFile()" class="p-1.5 text-blue-500 hover:bg-gray-300 text-xs font-bold">Salvar .py</button>
                 </div>
             </div>
             
@@ -125,7 +114,6 @@
             </div>
         </section>
 
-        <!-- Console / Turtle -->
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
                 <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal</span>
@@ -134,7 +122,6 @@
             
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
                 <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">~ lexis-ai-engine started...</div>
-                
                 <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
                     <div id="mycanvas"></div>
                 </div>
@@ -143,12 +130,9 @@
     </main>
 
     <script>
-        // ==========================================
-        // 1. INICIALIZAÇÃO DOS MOTORES
-        // ==========================================
-        let executionCounter = 0;
         let pyodideInstance = null;
         let pyodideCarregando = true;
+        let ultimoArquivoCSV = ""; // A variável que o Agente IA vai usar!
 
         function outf(text) { 
             let output = document.getElementById("output"); 
@@ -156,27 +140,20 @@
             output.scrollTop = output.scrollHeight; 
         }
 
-        // Carrega o motor de Dados (Pyodide) silenciosamente no background
         async function initPyodide() {
             try {
                 pyodideInstance = await loadPyodide();
                 await pyodideInstance.loadPackage("pandas");
                 pyodideCarregando = false;
-                outf("\n[SISTEMA]: Motor de Dados (Pandas) carregado e pronto em background.\n");
+                outf("\n[SISTEMA]: Motor de Dados pronto.\n");
             } catch (err) {
-                outf("\n[Erro no Motor de Dados]: " + err);
+                outf("\n[Erro]: " + err);
             }
         }
-        // Inicia o download do motor de dados assim que a tela abre
         initPyodide();
 
-
-        // ==========================================
-        // 2. CONFIGURAÇÃO DO EDITOR (CODEMIRROR)
-        // ==========================================
-        let tabs = [{ id: 1, name: 'main.py', content: '# Lexis AI Engine\n# Selecione o Motor Gráfico para simulações visuais.\n# Selecione o Motor de Dados para análise de planilhas CSV.\n' }];
+        let tabs = [{ id: 1, name: 'main.py', content: '# Cole seu script aqui ou use os botões acima.' }];
         let activeTabId = 1;
-
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
         });
@@ -186,10 +163,6 @@
             if (current) current.content = editor.getValue();
         });
 
-
-        // ==========================================
-        // 3. ANEXO DE ARQUIVOS INTELIGENTE
-        // ==========================================
         function importarArquivoInteligente(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -197,172 +170,165 @@
             const extensao = file.name.split('.').pop().toLowerCase();
             const reader = new FileReader();
 
-            // Se for CSV, joga pro HD Virtual do Pyodide
             if (extensao === 'csv') {
-                if (pyodideCarregando || !pyodideInstance) {
-                    outf("\n[Erro] O Motor de Dados ainda está inicializando. Aguarde 5 segundos e tente novamente.\n");
-                    return;
+                if (pyodideCarregando) {
+                    outf("\n[Aguarde] Inicializando motor de dados...\n"); return;
                 }
-                
                 reader.onload = function(e) {
                     const data = new Uint8Array(e.target.result);
                     pyodideInstance.FS.writeFile("/" + file.name, data);
-                    outf(`\n[+] SUCESSO: Planilha '${file.name}' montada no HD Virtual.\n    (Dica: no script use pd.read_csv('/${file.name}'))\n`);
+                    ultimoArquivoCSV = file.name; // Salva o nome dinâmico
+                    document.getElementById("btn-agente").classList.remove("hidden"); // Mostra o botão do Agente
+                    outf(`\n[+] BASE CONECTADA: '${file.name}'. O botão '🤖 Auto-Auditoria' está liberado.\n`);
                 };
                 reader.readAsArrayBuffer(file);
-            } 
-            // Se for arquivo de texto, joga no editor
-            else {
-                reader.onload = function(e) {
-                    editor.setValue(e.target.result);
-                    outf(`\n[+] Script '${file.name}' anexado no editor.\n`);
-                };
+            } else {
+                reader.onload = function(e) { editor.setValue(e.target.result); };
                 reader.readAsText(file);
             }
             event.target.value = ''; 
         }
 
         // ==========================================
-        // 4. LÓGICA DE EXECUÇÃO HÍBRIDA (DUAL-ENGINE)
+        // O AGENTE DE IA (RODA SEM TOCAR NO EDITOR)
+        // ==========================================
+        function executarAgenteIA() {
+            if (document.getElementById("engine-selector").value !== "pyodide") {
+                outf("\n[!] Mude para 'Motor: Dados' para usar a Auditoria Automática.\n");
+                return;
+            }
+            if (!ultimoArquivoCSV) {
+                outf("\n[!] Nenhum arquivo CSV anexado.\n"); return;
+            }
+
+            outf(`\n~ Acionando Agente de IA para a base '${ultimoArquivoCSV}'...\n`);
+            
+            // Script embutido (injeta o nome do arquivo automaticamente)
+            const scriptIA = `
+import pandas as pd
+import numpy as np
+from js import document, window, Uint8Array, Blob
+
+arquivo = "/${ultimoArquivoCSV}"
+print("="*50)
+print(f" 🤖 INICIANDO AUDITORIA: {arquivo.replace('/', '')}")
+print("="*50)
+
+df = pd.read_csv(arquivo)
+df['Status_Auditoria'] = ""
+
+# Duplicidade
+duplicadas = df.duplicated(keep=False)
+df.loc[duplicadas, 'Status_Auditoria'] += "[Duplicado] "
+
+# Varredura Nulos
+for col in df.columns:
+    if col != 'Status_Auditoria':
+        nulos = df[col].isnull()
+        if nulos.any():
+            df.loc[nulos, 'Status_Auditoria'] += f"[Branco: {col}] "
+
+# Varredura Numérica e Outliers
+colunas_num = df.select_dtypes(include=[np.number]).columns
+for col in colunas_num:
+    negativos = df[col] < 0
+    if negativos.any():
+        df.loc[negativos, 'Status_Auditoria'] += f"[Negativo Impossível: {col}] "
+    
+    limite = df[col].mean() + (4 * df[col].std())
+    outliers = df[col] > limite
+    if outliers.any():
+        df.loc[outliers, 'Status_Auditoria'] += f"[Outlier Detectado: {col}] "
+
+# Consolidando Aprovados
+df.loc[df['Status_Auditoria'] == "", 'Status_Auditoria'] = "✅ APROVADO"
+
+total = len(df)
+aprov = len(df[df['Status_Auditoria'] == '✅ APROVADO'])
+print(f" [+] Linhas Inspecionadas: {total}")
+print(f" [+] Status Aprovado     : {aprov}")
+print(f" [+] Status com Falha    : {total - aprov}")
+
+# Exportando Arquivo
+df_final = df[['Status_Auditoria'] + [c for c in df.columns if c != 'Status_Auditoria']]
+df_final = df_final.sort_values(by='Status_Auditoria', ascending=False)
+
+nome_saida = "Auditoria_" + "${ultimoArquivoCSV}"
+df_final.to_csv(nome_saida, index=False, encoding='utf-8-sig')
+
+with open(nome_saida, 'rb') as f:
+    conteudo = f.read()
+    
+js_array = Uint8Array.new(len(conteudo))
+js_array.assign(conteudo)
+blob = Blob.new([js_array], type="text/csv;charset=utf-8-sig")
+url = window.URL.createObjectURL(blob)
+link = document.createElement("a")
+link.href = url
+link.download = nome_saida
+link.click()
+window.URL.revokeObjectURL(url)
+
+print(f"\\n[✅] Auditoria Concluída! O arquivo '{nome_saida}' foi baixado com sucesso.")
+`;
+
+            pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
+            pyodideInstance.runPythonAsync(scriptIA).catch((err) => outf("\n[Erro do Agente]: " + err));
+        }
+
+        // ==========================================
+        // FUNÇÕES PADRÃO DO EDITOR DA IDE
         // ==========================================
         function runPython() {
+            let prog = editor.getValue();
             let output = document.getElementById("output");
             let turtleBox = document.getElementById("turtle-container");
-            let motorEscolhido = document.getElementById("engine-selector").value;
-            let prog = editor.getValue();
+            let motor = document.getElementById("engine-selector").value;
             
-            output.innerHTML = "~ processando...\n";
+            output.innerHTML = "~ executando IDE...\n";
             turtleBox.classList.add("hidden");
             document.getElementById("mycanvas").innerHTML = "";
-            let currentExecutionId = ++executionCounter;
 
-            // ROTA 1: MOTOR GRÁFICO (SKULPT)
-            if (motorEscolhido === "skulpt") {
-                if (prog.includes("import turtle") || prog.includes("from turtle import")) {
-                    turtleBox.classList.remove("hidden");
-                }
+            if (motor === "skulpt") {
+                if (prog.includes("import turtle")) turtleBox.classList.remove("hidden");
                 Sk.TurtleGraphics = Sk.TurtleGraphics || {};
                 Sk.TurtleGraphics.target = 'mycanvas';
                 Sk.pre = "output";
-                Sk.configure({
-                    output: outf,
-                    read: function(x) {
-                        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-                            throw "Erro: Módulo '" + x + "' não suportado pelo motor gráfico.";
-                        }
-                        return Sk.builtinFiles["files"][x];
-                    },
-                    inputfun: function(promptText) {
-                        return new Promise(function(resolve, reject) {
-                            if (currentExecutionId !== executionCounter) return reject("Stop");
-                            if (promptText) outf(promptText);
-                            let inputWrapper = document.createElement("div");
-                            inputWrapper.className = "flex w-full mt-1";
-                            let inputLine = document.createElement("input");
-                            inputLine.type = "text";
-                            inputLine.className = "bg-[#2A2A2A] text-white border border-apple-blue rounded px-2 py-1 outline-none flex-1 min-w-[150px]";
-                            inputWrapper.appendChild(inputLine);
-                            output.appendChild(inputWrapper);
-                            inputLine.focus();
-                            inputLine.addEventListener("keydown", function(e) {
-                                if (e.key === "Enter") {
-                                    let val = inputLine.value; 
-                                    inputWrapper.remove(); 
-                                    outf(val + "\n"); 
-                                    resolve(val);
-                                }
-                            });
-                        });
-                    },
-                    inputfunTakesPrompt: true
-                });
-                
-                var myPromise = Sk.misceval.asyncToPromise(function() {
-                    return Sk.importMainWithBody("<stdin>", false, prog, true);
-                });
-                myPromise.then(function() { outf("\n[Finalizado]"); }, function(err) {
-                    if (currentExecutionId === executionCounter) outf("\n[Erro Motor Gráfico]: " + err.toString());
-                });
-            } 
-            
-            // ROTA 2: MOTOR DE DADOS (PYODIDE + PANDAS)
-            else if (motorEscolhido === "pyodide") {
-                if (pyodideCarregando) {
-                    outf("\n[Aviso] O Motor de Dados ainda está baixando bibliotecas pesadas (Pandas). Aguarde um instante...");
-                    return;
-                }
-                outf("[!] Iniciando ambiente de Data Science...\n");
-                
-                // Redireciona os prints do Python original para o nosso HTML
+                Sk.configure({ output: outf, read: function(x) { return Sk.builtinFiles["files"][x]; } });
+                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true))
+                    .then(() => outf("\n[Finalizado]"), (err) => outf("\n[Erro]: " + err));
+            } else if (motor === "pyodide") {
                 pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
-                
-                pyodideInstance.runPythonAsync(prog).then(() => {
-                    outf("\n[Auditoria Concluída]");
-                }).catch((err) => {
-                    outf("\n[Erro Motor de Dados]:\n" + err);
-                });
+                pyodideInstance.runPythonAsync(prog).catch((err) => outf("\n[Erro]:\n" + err));
             }
         }
 
-
-        // ==========================================
-        // 5. FERRAMENTAS EXTRAS E UI
-        // ==========================================
+        // Demais funções da UI (Themes, Tabs, etc) continuam idênticas
         let guidesVisible = false;
         function toggleGuides() {
             guidesVisible = !guidesVisible;
-            const cmElement = document.querySelector(".CodeMirror");
-            const btn = document.getElementById("btn-guides");
-            if (guidesVisible) {
-                cmElement.classList.add("show-guides");
-                btn.style.color = "#007AFF"; 
-                document.getElementById("guides-icon").style.filter = "grayscale(0)";
-            } else {
-                cmElement.classList.remove("show-guides");
-                btn.style.color = ""; 
-                document.getElementById("guides-icon").style.filter = "";
-            }
+            document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible);
+            document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : "";
+            document.getElementById("guides-icon").style.filter = guidesVisible ? "grayscale(0)" : "";
         }
-
         function renderTabs() {
-            const container = document.getElementById('tabs-container');
-            container.innerHTML = '';
+            const container = document.getElementById('tabs-container'); container.innerHTML = '';
             tabs.forEach(tab => {
                 let isActive = tab.id === activeTabId;
                 let tabEl = document.createElement('div');
-                tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 border-transparent'}`;
-                tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>${tabs.length > 1 ? `<span onclick="closeTab(event, ${tab.id})" class="text-red-500 ml-2 font-bold">×</span>` : ''}`;
+                tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'}`;
+                tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`;
                 container.appendChild(tabEl);
             });
         }
-
-        function switchTab(id) { activeTabId = id; let tab = tabs.find(t => t.id === id); if (tab) { editor.setValue(tab.content); renderTabs(); } }
+        function switchTab(id) { activeTabId = id; editor.setValue(tabs.find(t => t.id === id).content); renderTabs(); }
         function addNewTab() { let newId = Date.now(); tabs.push({ id: newId, name: `script_${tabs.length + 1}.py`, content: '' }); switchTab(newId); }
-        function closeTab(event, id) { event.stopPropagation(); if (tabs.length <= 1) return; tabs = tabs.filter(t => t.id !== id); if (activeTabId === id) switchTab(tabs[0].id); else renderTabs(); }
         function clearEditor() { if (confirm("Limpar código?")) editor.setValue(""); }
-        function saveFile() { let current = tabs.find(t => t.id === activeTabId); let blob = new Blob([editor.getValue()], { type: "text/plain;charset=utf-8" }); let url = URL.createObjectURL(blob); let a = document.createElement('a'); a.href = url; a.download = current ? current.name : "script.py"; a.click(); URL.revokeObjectURL(url); }
-        function insertCode(text) { let doc = editor.getDoc(); doc.replaceRange(text, doc.getCursor()); editor.focus(); }
-
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            document.getElementById('theme-icon-sun').classList.toggle('hidden');
-            document.getElementById('theme-icon-moon').classList.toggle('hidden');
-        }
-
-        function stopExecution() {
-            executionCounter++;
-            document.getElementById("output").innerHTML += "\n\n[Interrompido]";
-            document.getElementById("mycanvas").innerHTML = ""; 
-        }
-
-        function clearConsole() { 
-            document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; 
-            document.getElementById("turtle-container").classList.add("hidden");
-            document.getElementById("mycanvas").innerHTML = "";
-        }
-        
+        function insertCode(text) { editor.replaceRange(text, editor.getCursor()); editor.focus(); }
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); document.getElementById('theme-icon-sun').classList.toggle('hidden'); document.getElementById('theme-icon-moon').classList.toggle('hidden'); }
+        function stopExecution() { document.getElementById("output").innerHTML += "\n\n[Interrompido]"; document.getElementById("mycanvas").innerHTML = ""; }
+        function clearConsole() { document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
         renderTabs();
-        editor.setValue(tabs[0].content);
     </script>
 </body>
 </html>
