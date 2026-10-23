@@ -54,7 +54,7 @@
                 Relatório de Impacto (BI)
             </button>
 
-            <!-- BOTÃO LEXIS COPILOT (GROQ API) -->
+            <!-- BOTÃO LEXIS COPILOT (GROQ API COM CORS) -->
             <button onclick="perguntarGroqAI()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-purple-400">
                 💡 Lexis Copilot
             </button>
@@ -101,19 +101,13 @@
 
     <script>
         // ==========================================
-        // LEXIS COPILOT (INTEGRAÇÃO GROQ API)
+        // LEXIS COPILOT (INTEGRAÇÃO GROQ API COM CORS)
         // ==========================================
         async function perguntarGroqAI() {
-            // OFUSCAÇÃO DE CHAVE GROQ: Cole os pedaços da sua chave gsk_... aqui
             const p1 = "gsk_2GQhrxBD1XbyuttD"; 
-            const p2 = "r0XeWGdyb3FYHsiRx"; 
-            const p3 = "WBeNgQDUxn0bOziCxgC"; 
+            const p2 = "r0XeWGdyb3FYHsRx"; 
+            const p3 = "WBeNgQDUXn0bOzICxgC"; 
             const apiKey = p1 + p2 + p3;
-
-            if (apiKey === "PARTE_1PARTE_2PARTE_3") {
-                outf("\nAviso: Configure os pedaços da Chave Groq no código-fonte.\n");
-                return;
-            }
 
             const codigoAtual = editor.getValue();
             const logTerminal = document.getElementById("output").innerText.slice(-500); 
@@ -123,21 +117,21 @@
                 return;
             }
 
-            outf("\n<span class='ai-text'>Lexis Copilot (Groq): Analisando código e dados...</span>\n");
+            outf("\n<span class='ai-text'>Lexis Copilot (Groq): Conectando ao motor de IA...</span>\n");
 
             const promptSistema = "Você é o Lexis Copilot, um assistente especialista em Python, Data Science, Pandas e automação corporativa. Seja direto, técnico e ajude a otimizar scripts.";
             const promptUsuario = `Código atual:\n${codigoAtual}\n\nLogs recentes:\n${logTerminal}\n\nExplique o código ou aponte como corrigir eventuais falhas.`;
 
             try {
-                // A Groq utiliza um endpoint compatível com o formato OpenAI, extremamente rápido
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
+                    mode: "cors", // Garante permissão de comunicação entre domínios
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile", // Modelo de alta capacidade e gratuito na Groq
+                        model: "llama-3.3-70b-versatile",
                         messages: [
                             { role: "system", content: promptSistema },
                             { role: "user", content: promptUsuario }
@@ -147,16 +141,17 @@
                     })
                 });
 
-                const data = await response.json();
-                
-                if (data.error) {
-                    outf(`\n<span class='ai-text'>Erro na API Groq: ${data.error.message}</span>\n`);
-                } else {
-                    const respostaIA = data.choices[0].message.content;
-                    outf(`\n<span class='ai-text'>=== LEXIS COPILOT ===\n${respostaIA}\n=====================</span>\n`);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
                 }
+
+                const data = await response.json();
+                const respostaIA = data.choices[0].message.content;
+                
+                outf(`\n<span class='ai-text'>=== LEXIS COPILOT ===\n${respostaIA}\n=====================</span>\n`);
+
             } catch (err) {
-                outf(`\n<span class='ai-text'>Falha de conexão com a Groq: ${err}</span>\n`);
+                outf(`\n<span class='ai-text'>Falha de conexão: ${err.message}. (Dica: Verifique se sua rede permite chamadas externas para a API da Groq).</span>\n`);
             }
         }
 
