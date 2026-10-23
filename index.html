@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI — IDE Python Híbrida</title>
+    <title>Lexis AI — IDE Híbrida</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -53,28 +53,28 @@
 
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <img src="image.png" alt="Lexis AI" class="w-10 h-10 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
-            <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
+            <h1 class="text-xl font-bold tracking-tight border-r border-gray-300 dark:border-gray-700 pr-4">Lexis AI</h1>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-bold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer">
-                <option value="skulpt">🚀 Motor: Gráfico</option>
-                <option value="pyodide">📊 Motor: Dados</option>
+            <!-- Seletor Limpo -->
+            <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer">
+                <option value="skulpt">Motor Gráfico</option>
+                <option value="pyodide">Motor de Dados</option>
             </select>
 
             <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2">
-                📁 Anexar
+                Anexar Arquivo
             </label>
             <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
 
             <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span id="guides-icon">📏</span> Guias
+                <span id="guides-icon" class="text-gray-400">|</span> Guias
             </button>
 
-            <!-- NOVO: BOTÃO AGENTE DE IA (Oculto por padrão, aparece ao anexar CSV) -->
-            <button onclick="executarAgenteIA()" id="btn-agente" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 hidden">
-                🤖 Auto-Auditoria
+            <!-- NOVO: BOTÃO AGENTE DE IA (Estilo Corporativo) -->
+            <button onclick="executarAgenteIA()" id="btn-agente" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 hidden">
+                Auditoria Inteligente
             </button>
 
             <button onclick="toggleTheme()" class="p-2 ml-1 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -85,7 +85,7 @@
                 <span>Parar</span>
             </button>
             <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95">
-                <span>Executar IDE</span>
+                <span>Executar Script</span>
             </button>
         </div>
     </header>
@@ -95,8 +95,8 @@
             <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
                 <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
                 <div class="flex items-center gap-2 pb-1 shrink-0">
-                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-bold">+ Novo</button>
-                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-bold">Limpar</button>
+                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-semibold">+ Novo</button>
+                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-semibold">Limpar</button>
                 </div>
             </div>
             
@@ -116,12 +116,13 @@
 
         <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
             <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
-                <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal</span>
+                <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal / Output</span>
                 <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white">Limpar</button>
             </div>
             
             <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
-                <div id="output" class="flex-1 p-4 font-mono text-[15px] text-green-400 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">~ lexis-ai-engine started...</div>
+                <!-- Terminal com cor de fonte profissional (gray-300) -->
+                <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado.</div>
                 <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative">
                     <div id="mycanvas"></div>
                 </div>
@@ -132,7 +133,7 @@
     <script>
         let pyodideInstance = null;
         let pyodideCarregando = true;
-        let ultimoArquivoCSV = ""; // A variável que o Agente IA vai usar!
+        let ultimoArquivoCSV = ""; 
 
         function outf(text) { 
             let output = document.getElementById("output"); 
@@ -145,14 +146,14 @@
                 pyodideInstance = await loadPyodide();
                 await pyodideInstance.loadPackage("pandas");
                 pyodideCarregando = false;
-                outf("\n[SISTEMA]: Motor de Dados pronto.\n");
+                outf("\nInfo: Motor de Dados inicializado.\n");
             } catch (err) {
-                outf("\n[Erro]: " + err);
+                outf("\nErro de Sistema: " + err);
             }
         }
         initPyodide();
 
-        let tabs = [{ id: 1, name: 'main.py', content: '# Cole seu script aqui ou use os botões acima.' }];
+        let tabs = [{ id: 1, name: 'main.py', content: '# Ambiente de desenvolvimento pronto.' }];
         let activeTabId = 1;
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true
@@ -172,14 +173,14 @@
 
             if (extensao === 'csv') {
                 if (pyodideCarregando) {
-                    outf("\n[Aguarde] Inicializando motor de dados...\n"); return;
+                    outf("\nInfo: Aguarde a inicialização do motor de dados...\n"); return;
                 }
                 reader.onload = function(e) {
                     const data = new Uint8Array(e.target.result);
                     pyodideInstance.FS.writeFile("/" + file.name, data);
-                    ultimoArquivoCSV = file.name; // Salva o nome dinâmico
-                    document.getElementById("btn-agente").classList.remove("hidden"); // Mostra o botão do Agente
-                    outf(`\n[+] BASE CONECTADA: '${file.name}'. O botão '🤖 Auto-Auditoria' está liberado.\n`);
+                    ultimoArquivoCSV = file.name; 
+                    document.getElementById("btn-agente").classList.remove("hidden"); 
+                    outf(`\nInfo: Base de dados conectada ('${file.name}').\nInfo: Ferramenta de Auditoria Inteligente habilitada.\n`);
                 };
                 reader.readAsArrayBuffer(file);
             } else {
@@ -190,64 +191,64 @@
         }
 
         // ==========================================
-        // O AGENTE DE IA (RODA SEM TOCAR NO EDITOR)
+        // O AGENTE DE IA (ESTÉTICA CORPORATIVA)
         // ==========================================
         function executarAgenteIA() {
             if (document.getElementById("engine-selector").value !== "pyodide") {
-                outf("\n[!] Mude para 'Motor: Dados' para usar a Auditoria Automática.\n");
+                outf("\nAviso: Mude para 'Motor de Dados' para executar a Auditoria Inteligente.\n");
                 return;
             }
             if (!ultimoArquivoCSV) {
-                outf("\n[!] Nenhum arquivo CSV anexado.\n"); return;
+                outf("\nAviso: Nenhuma base de dados anexada.\n"); return;
             }
 
-            outf(`\n~ Acionando Agente de IA para a base '${ultimoArquivoCSV}'...\n`);
+            outf(`\nProcessando: Iniciando varredura na base '${ultimoArquivoCSV}'...\n`);
             
-            // Script embutido (injeta o nome do arquivo automaticamente)
+            // Script do agente com logs limpos e estruturados
             const scriptIA = `
 import pandas as pd
 import numpy as np
 from js import document, window, Uint8Array, Blob
 
 arquivo = "/${ultimoArquivoCSV}"
-print("="*50)
-print(f" 🤖 INICIANDO AUDITORIA: {arquivo.replace('/', '')}")
-print("="*50)
+print("--------------------------------------------------")
+print(f"RELATÓRIO DE AUDITORIA: {arquivo.replace('/', '')}")
+print("--------------------------------------------------")
 
 df = pd.read_csv(arquivo)
 df['Status_Auditoria'] = ""
 
 # Duplicidade
 duplicadas = df.duplicated(keep=False)
-df.loc[duplicadas, 'Status_Auditoria'] += "[Duplicado] "
+df.loc[duplicadas, 'Status_Auditoria'] += "Duplicidade Sistêmica; "
 
 # Varredura Nulos
 for col in df.columns:
     if col != 'Status_Auditoria':
         nulos = df[col].isnull()
         if nulos.any():
-            df.loc[nulos, 'Status_Auditoria'] += f"[Branco: {col}] "
+            df.loc[nulos, 'Status_Auditoria'] += f"Falta Dado ({col}); "
 
 # Varredura Numérica e Outliers
 colunas_num = df.select_dtypes(include=[np.number]).columns
 for col in colunas_num:
     negativos = df[col] < 0
     if negativos.any():
-        df.loc[negativos, 'Status_Auditoria'] += f"[Negativo Impossível: {col}] "
+        df.loc[negativos, 'Status_Auditoria'] += f"Valor Negativo Inválido ({col}); "
     
     limite = df[col].mean() + (4 * df[col].std())
     outliers = df[col] > limite
     if outliers.any():
-        df.loc[outliers, 'Status_Auditoria'] += f"[Outlier Detectado: {col}] "
+        df.loc[outliers, 'Status_Auditoria'] += f"Outlier Detectado ({col}); "
 
 # Consolidando Aprovados
-df.loc[df['Status_Auditoria'] == "", 'Status_Auditoria'] = "✅ APROVADO"
+df.loc[df['Status_Auditoria'] == "", 'Status_Auditoria'] = "Aprovado"
 
 total = len(df)
-aprov = len(df[df['Status_Auditoria'] == '✅ APROVADO'])
-print(f" [+] Linhas Inspecionadas: {total}")
-print(f" [+] Status Aprovado     : {aprov}")
-print(f" [+] Status com Falha    : {total - aprov}")
+aprov = len(df[df['Status_Auditoria'] == 'Aprovado'])
+print(f"Registros processados : {total}")
+print(f"Lotes aprovados       : {aprov}")
+print(f"Lotes com falha       : {total - aprov}")
 
 # Exportando Arquivo
 df_final = df[['Status_Auditoria'] + [c for c in df.columns if c != 'Status_Auditoria']]
@@ -269,11 +270,11 @@ link.download = nome_saida
 link.click()
 window.URL.revokeObjectURL(url)
 
-print(f"\\n[✅] Auditoria Concluída! O arquivo '{nome_saida}' foi baixado com sucesso.")
+print(f"\\nStatus: Auditoria concluída. Relatório '{nome_saida}' exportado.")
 `;
 
             pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
-            pyodideInstance.runPythonAsync(scriptIA).catch((err) => outf("\n[Erro do Agente]: " + err));
+            pyodideInstance.runPythonAsync(scriptIA).catch((err) => outf("\nErro de Processamento: " + err));
         }
 
         // ==========================================
@@ -285,7 +286,7 @@ print(f"\\n[✅] Auditoria Concluída! O arquivo '{nome_saida}' foi baixado com 
             let turtleBox = document.getElementById("turtle-container");
             let motor = document.getElementById("engine-selector").value;
             
-            output.innerHTML = "~ executando IDE...\n";
+            output.innerHTML = "Executando script...\n";
             turtleBox.classList.add("hidden");
             document.getElementById("mycanvas").innerHTML = "";
 
@@ -296,14 +297,13 @@ print(f"\\n[✅] Auditoria Concluída! O arquivo '{nome_saida}' foi baixado com 
                 Sk.pre = "output";
                 Sk.configure({ output: outf, read: function(x) { return Sk.builtinFiles["files"][x]; } });
                 Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true))
-                    .then(() => outf("\n[Finalizado]"), (err) => outf("\n[Erro]: " + err));
+                    .then(() => outf("\nProcesso finalizado."), (err) => outf("\nErro de Execução: " + err));
             } else if (motor === "pyodide") {
                 pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") });
-                pyodideInstance.runPythonAsync(prog).catch((err) => outf("\n[Erro]:\n" + err));
+                pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro de Execução:\n" + err));
             }
         }
 
-        // Demais funções da UI (Themes, Tabs, etc) continuam idênticas
         let guidesVisible = false;
         function toggleGuides() {
             guidesVisible = !guidesVisible;
@@ -326,8 +326,8 @@ print(f"\\n[✅] Auditoria Concluída! O arquivo '{nome_saida}' foi baixado com 
         function clearEditor() { if (confirm("Limpar código?")) editor.setValue(""); }
         function insertCode(text) { editor.replaceRange(text, editor.getCursor()); editor.focus(); }
         function toggleTheme() { document.documentElement.classList.toggle('dark'); document.getElementById('theme-icon-sun').classList.toggle('hidden'); document.getElementById('theme-icon-moon').classList.toggle('hidden'); }
-        function stopExecution() { document.getElementById("output").innerHTML += "\n\n[Interrompido]"; document.getElementById("mycanvas").innerHTML = ""; }
-        function clearConsole() { document.getElementById("output").innerHTML = "~ lexis-ai-engine started...\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
+        function stopExecution() { document.getElementById("output").innerHTML += "\n\nProcesso interrompido."; document.getElementById("mycanvas").innerHTML = ""; }
+        function clearConsole() { document.getElementById("output").innerHTML = "Lexis AI Runtime Environment iniciado.\n"; document.getElementById("turtle-container").classList.add("hidden"); document.getElementById("mycanvas").innerHTML = ""; }
         renderTabs();
     </script>
 </body>
