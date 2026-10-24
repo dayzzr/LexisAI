@@ -23,7 +23,15 @@
     <style>
         .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 14px; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .CodeMirror.show-guides .CodeMirror-line { background-image: linear-gradient(to right, rgba(128, 128, 128, 0.25) 1px, transparent 1px); background-size: 36px 100%; background-repeat: repeat-y; background-position: 4px 0; }
+        
+        /* Guias corrigidas usando a unidade 'ch' (largura exata de um caractere) */
+        .CodeMirror.show-guides .CodeMirror-line { 
+            background-image: linear-gradient(to right, transparent 0, transparent calc(4ch - 1px), rgba(128, 128, 128, 0.2) 4ch); 
+            background-size: 4ch 100%; 
+            background-repeat: repeat-y; 
+            background-position: 0 0; 
+        }
+        
         select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
         #chat-messages pre { white-space: pre-wrap; font-family: 'SF Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 5px; overflow-x: auto;}
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -81,6 +89,8 @@
 
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-2 pr-4 border-r border-gray-300 dark:border-gray-700">
+            <!-- Restaurado o logo original image.png -->
+            <img src="image.png" alt="Lexis AI" class="w-9 h-9 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
             <button onclick="abrirInfo()" class="text-gray-400 hover:text-apple-blue transition-colors ml-1" title="Sobre o Lexis AI">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
@@ -147,20 +157,15 @@
     </main>
 
     <footer class="w-full text-center py-4 text-xs text-gray-500 dark:text-gray-400 border-t border-apple-borderLight dark:border-apple-borderDark mt-auto">
-        Criado e desenvolvido por Renato Dias Ramalho
+        Criado e desenvolvido por Renato Dias Ramalho.
     </footer>
 
     <script>
         // =========================================================================
-        // COLE SUA CHAVE EXATAMENTE ENTRE AS ASPAS ABAIXO:
+        // 🔑 COLE SUA CHAVE API DA GROQ EXATAMENTE ENTRE AS ASPAS ABAIXO:
         // =========================================================================
-        const minhaChaveGroq = "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"; 
+        const minhaChaveGroq = "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"; 
         // =========================================================================
-        
-        function getSegredo() {
-            const prefixoOculto = atob("Z3NrXw=="); 
-            return minhaChaveGroq.startsWith("gsk_") ? minhaChaveGroq : prefixoOculto + minhaChaveGroq;
-        }
 
         let pyodideInstance = null;
         let pyodideCarregando = true;
@@ -193,10 +198,9 @@
 
         // --- CÉREBRO 1: AGENTE DE CÓDIGO (GROQ LLM) ---
         async function consultarAgenteCodigo() {
-            const apiKey = getSegredo();
+            const apiKey = minhaChaveGroq.trim();
             
-            // Validação corrigida para evitar confusão de textos:
-            if (apiKey.includes("SUA_CHAVE_GROQ_AQUI") || apiKey.trim() === "" || apiKey === "gsk_") {
+            if (apiKey === "COLE_SUA_CHAVE_AQUI" || apiKey === "") {
                 alert("Você esqueceu de colar a sua chave na variável 'minhaChaveGroq' no código HTML!"); return;
             }
 
@@ -228,14 +232,14 @@
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
                     body: JSON.stringify({
-                        model: "llama3-8b-8192", 
+                        model: "llama-3.1-8b-instant", 
                         messages: [ { role: "system", content: promptSistema }, { role: "user", content: promptUsuario } ],
                         temperature: 0.2
                     })
                 });
 
                 document.getElementById(loadId).remove();
-                if (!response.ok) throw new Error(`Falha na API (Status ${response.status}). A chave pode ter sido revogada.`);
+                if (!response.ok) throw new Error(`Falha na API (Status ${response.status}). A chave pode estar incorreta ou revogada.`);
 
                 const data = await response.json();
                 const respostaIA = data.choices[0].message.content;
