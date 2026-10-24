@@ -169,20 +169,24 @@
         let ultimoArquivoCSV = ""; 
         function outf(text) { let output = document.getElementById("output"); output.innerHTML += text; output.scrollTop = output.scrollHeight; }
         
-        async function initPyodide() {
+                async function initPyodide() {
             try { 
                 pyodideInstance = await loadPyodide(); 
+                
+                // 1. Carrega os pacotes nativos (C/C++) pré-compilados do Pyodide
                 await pyodideInstance.loadPackage([
-    "pandas", 
-    "numpy", 
-    "matplotlib", 
-    "micropip",
-    "scipy",          // Matemática avançada e física
-    "scikit-learn",   // Modelos de Machine Learning (Regressão, Clusterização)
-    "seaborn",        // Gráficos estatísticos mais bonitos e complexos
-    "openpyxl"        // Leitura e escrita de planilhas .xlsx originais do Excel
-]); 
- 
+                    "pandas", 
+                    "numpy", 
+                    "matplotlib", 
+                    "micropip",
+                    "scipy",          
+                    "scikit-learn"    
+                ]); 
+                
+                // 2. Conecta ao PyPI global para descarregar pacotes puros
+                const micropip = pyodideInstance.pyimport("micropip");
+                await micropip.install(["seaborn", "openpyxl"]);
+                
                 pyodideCarregando = false; 
                 
                 const statusInd = document.getElementById('status-indicator');
