@@ -57,7 +57,7 @@
                 <div class="bg-blue-900/30 text-blue-100 p-4 rounded-xl border border-blue-700/50">
                     <strong>Bem-vindo ao Copilot Unificado!</strong><br><br>
                     • Use o botão <strong>Processar Dados</strong> para analisar CSVs localmente (Offline).<br>
-                    • Use o botão <strong>Agente IA (Código)</strong> para a IA ler o seu editor e resolver problemas.
+                    • Use o botão <strong>Agente IA (Código)</strong> para a IA ler o seu editor e resolver problemas com segurança em nuvem.
                 </div>
             </div>
 
@@ -71,13 +71,13 @@
         </div>
     </div>
 
-    <!-- MODAL DO MANUAL COMPLETO (USER GUIDE) -->
+    <!-- MODAL DO MANUAL COMPLETO (USER GUIDE ATUALIZADO COM SEGURANÇA) -->
     <div id="info-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-4xl w-full border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh] overflow-hidden">
             <div class="bg-gray-100 dark:bg-[#1C1C1E] px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <svg class="w-6 h-6 text-apple-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                    <h2 class="font-bold text-lg">Documentação Oficial Lexis AI</h2>
+                    <h2 class="font-bold text-lg">Documentação Oficial & Segurança Lexis AI</h2>
                 </div>
                 <button onclick="fecharInfo()" class="text-gray-400 hover:text-red-500 font-bold text-lg transition-colors">✕</button>
             </div>
@@ -85,70 +85,33 @@
             <div class="p-6 text-sm space-y-8 overflow-y-auto text-gray-700 dark:text-gray-300 font-sans leading-relaxed">
                 
                 <section>
-                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">1. Motores de Execução</h3>
-                    <p>O Lexis AI possui dois ambientes de interpretação rodando diretamente no seu navegador, garantindo 100% de privacidade sem envio de dados para servidores:</p>
+                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">1. Arquitetura de Segurança & Privacidade</h3>
+                    <p>O Lexis AI foi concebido sob o princípio de <strong>Zero-Trust em Front-end</strong> e total isolamento de dados:</p>
                     <ul class="list-disc pl-5 mt-2 space-y-1">
-                        <li><strong>Motor de Dados (Pyodide):</strong> Ambiente robusto em WebAssembly voltado para Data Science, Machine Learning e processamento de arquivos pesados.</li>
-                        <li><strong>Motor Gráfico (Skulpt):</strong> Ambiente leve e voltado para lógica visual, algoritmos educacionais e renderização de desenhos vetoriais (`import turtle`).</li>
+                        <li><strong>Processamento 100% Local (Dados):</strong> Planilhas CSV, matrizes e cálculos em Python rodam exclusivamente na memória RAM do seu dispositivo via WebAssembly (Pyodide), sem enviar dados corporativos para nuvens externas.</li>
+                        <li><strong>Backend Blindado (Cloudflare Workers):</strong> As chaves de API de inteligência artificial não ficam expostas no código do navegador. Elas são gerenciadas de forma criptografada em um servidor proxy isolado na nuvem.</li>
                     </ul>
                 </section>
 
                 <section>
-                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Bibliotecas Nativas (Pré-carregadas)</h3>
-                    <p>Ao selecionar o <em>Motor de Dados</em>, o Lexis AI carrega automaticamente o núcleo pesado de Data Science. Você não precisa instalá-las, basta importar no script:</p>
-                    <div class="grid grid-cols-2 gap-2 mt-2 font-mono text-xs">
-                        <div class="bg-gray-100 dark:bg-black/30 p-2 rounded border border-gray-300 dark:border-gray-600">import pandas as pd</div>
-                        <div class="bg-gray-100 dark:bg-black/30 p-2 rounded border border-gray-300 dark:border-gray-600">import numpy as np</div>
-                        <div class="bg-gray-100 dark:bg-black/30 p-2 rounded border border-gray-300 dark:border-gray-600">import matplotlib.pyplot as plt</div>
-                        <div class="bg-gray-100 dark:bg-black/30 p-2 rounded border border-gray-300 dark:border-gray-600">import scipy</div>
-                        <div class="bg-gray-100 dark:bg-black/30 p-2 rounded border border-gray-300 dark:border-gray-600">import sklearn</div>
-                        <div class="bg-gray-100 dark:bg-black/30 p-2 rounded border border-gray-300 dark:border-gray-600">import seaborn as sns</div>
-                    </div>
+                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Motores de Execução</h3>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><strong>Motor de Dados (Pyodide):</strong> Ambiente robusto para Data Science, Machine Learning e computação científica.</li>
+                        <li><strong>Motor Gráfico (Skulpt):</strong> Ambiente leve focado em lógica visual e gráficos interativos simples.</li>
+                    </ul>
                 </section>
 
                 <section>
-                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">3. Instalando Outras Bibliotecas (Micropip)</h3>
-                    <p>Você pode expandir o Lexis AI instalando qualquer pacote puro do Python (PyPI) em tempo real usando funções assíncronas e o `micropip`.</p>
+                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">3. Bibliotecas Nativas & Micropip</h3>
+                    <p>O Motor de Dados carrega nativamente: <code>pandas</code>, <code>numpy</code>, <code>matplotlib</code>, <code>scipy</code> e <code>scikit-learn</code>. Pacotes adicionais podem ser instalados via internet dinamicamente:</p>
                     <div class="manual-code">import micropip
 import asyncio
 
 async def main():
-    # Instala o pacote desejado via internet
-    await micropip.install("plotly")
-    
-    import plotly
-    print("Plotly instalado com sucesso!")
+    await micropip.install("plotly") # Exemplo com gráficos 3D
+    import plotly.graph_objects as go
 
-# Invoca a função assíncrona
 await main()</div>
-                </section>
-
-                <section>
-                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">4. Manipulando Arquivos (Uploads)</h3>
-                    <p>Para analisar dados corporativos, clique no botão <strong>Anexar Arquivo</strong>. O CSV será carregado na RAM do seu dispositivo de forma segura. Para lê-lo no script, adicione uma barra <code>/</code> antes do nome do arquivo.</p>
-                    <div class="manual-code">import pandas as pd
-
-# Substitua 'vendas.csv' pelo nome exato do arquivo anexado
-df = pd.read_csv('/vendas.csv')
-print(df.head())</div>
-                </section>
-
-                <section>
-                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">5. Renderizando Gráficos no Terminal</h3>
-                    <p>Para exibir gráficos estáticos (Matplotlib/Seaborn) no terminal, converta a imagem para Base64 e injete-a como uma tag HTML através de comandos de `print`.</p>
-                    <div class="manual-code">import matplotlib.pyplot as plt
-import io, base64
-
-plt.plot([1, 2, 3], [10, 20, 15])
-plt.title("Meu Gráfico Lexis")
-
-# Conversão para exibição no Terminal
-buf = io.BytesIO()
-plt.savefig(buf, format='png', transparent=True)
-img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-plt.close()
-
-print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px; margin-top:10px; max-width:100%;'&gt;")</div>
                 </section>
 
             </div>
@@ -232,9 +195,10 @@ print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px;
 
     <script>
         // =========================================================================
-        // 🔑 CONFIGURAÇÃO FIXA DA API (SEM DESCOBERTA AUTOMÁTICA)
+        // 🛡️ URL DO BACKEND BLINDADO (CLOUDFLARE WORKERS)
+        // A chave API da Groq agora está segura e oculta no servidor acima.
         // =========================================================================
-        const minhaChaveGroq = "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"; 
+        const WORKER_URL = "https://lexis-api-bridge.renato-dias0910.workers.dev";
         const modeloGroq = "openai/gpt-oss-120b"; 
         // =========================================================================
 
@@ -246,19 +210,9 @@ print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px;
         async function initPyodide() {
             try { 
                 pyodideInstance = await loadPyodide(); 
-                
-                await pyodideInstance.loadPackage([
-                    "pandas", 
-                    "numpy", 
-                    "matplotlib", 
-                    "micropip",
-                    "scipy",          
-                    "scikit-learn"    
-                ]); 
-                
+                await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip", "scipy", "scikit-learn"]); 
                 const micropip = pyodideInstance.pyimport("micropip");
                 await micropip.install(["seaborn", "openpyxl"]);
-                
                 pyodideCarregando = false; 
                 
                 const statusInd = document.getElementById('status-indicator');
@@ -279,14 +233,8 @@ print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px;
         }
         function fecharChat() { document.getElementById("chat-modal").classList.add("hidden"); }
 
-        // --- CÉREBRO 1: AGENTE DE CÓDIGO ---
+        // --- CÉREBRO 1: AGENTE DE CÓDIGO (COMUNICAÇÃO SEGURA VIA WORKER) ---
         async function consultarAgenteCodigo() {
-            const apiKey = minhaChaveGroq.trim();
-            
-            if (!apiKey || apiKey === "") {
-                alert("A chave da Groq não foi encontrada."); return;
-            }
-
             const inputEl = document.getElementById("chat-input");
             const duvida = inputEl.value.trim();
             if (!duvida) return;
@@ -304,16 +252,17 @@ print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px;
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             const loadId = "loading-" + Date.now();
-            chatMessages.innerHTML += `<div id="${loadId}" class="text-xs text-gray-500 ml-2">Agente analisando o código via ${modeloGroq}...</div>`;
+            chatMessages.innerHTML += `<div id="${loadId}" class="text-xs text-gray-500 ml-2">Agente analisando código com segurança via nuvem...</div>`;
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             const promptSistema = "Você é o Agente Lexis AI, especialista em Python e Data Science. Ajude o usuário com o código atual do editor.";
             const promptUsuario = `Dúvida: ${duvida}\n\nCódigo atual:\n\`\`\`python\n${codigoAtual}\n\`\`\``;
 
             try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                // Envia a requisição para o Cloudflare Workers (O Worker anexa a chave de forma invisível)
+                const response = await fetch(WORKER_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         model: modeloGroq, 
                         messages: [ { role: "system", content: promptSistema }, { role: "user", content: promptUsuario } ],
@@ -323,7 +272,7 @@ print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px;
 
                 document.getElementById(loadId).remove();
                 
-                if (!response.ok) throw new Error(`Falha na API da Groq (Status ${response.status}). Sua chave pode estar revogada ou o modelo está incorreto.`);
+                if (!response.ok) throw new Error(`Falha no Servidor Seguro (Status ${response.status}).`);
 
                 const data = await response.json();
                 const respostaIA = data.choices[0].message.content;
@@ -331,7 +280,8 @@ print(f"&lt;img src='data:image/png;base64,{img_b64}' style='border-radius:12px;
                 chatMessages.innerHTML += `
                     <div class="flex justify-start">
                         <div class="bg-gray-100 dark:bg-[#1E1E1E] border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 p-4 rounded-xl max-w-[95%] text-sm shadow-sm overflow-x-auto">
-                            <strong>🤖 Agente IA (${modeloGroq}):</strong><br><br>${respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')}
+                            <strong>🤖 Agente IA (Seguro):</strong><br><br>
+                            ${respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')}
                         </div>
                     </div>`;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
