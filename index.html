@@ -172,7 +172,17 @@
         async function initPyodide() {
             try { 
                 pyodideInstance = await loadPyodide(); 
-                await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip"]); 
+                await pyodideInstance.loadPackage([
+    "pandas", 
+    "numpy", 
+    "matplotlib", 
+    "micropip",
+    "scipy",          // Matemática avançada e física
+    "scikit-learn",   // Modelos de Machine Learning (Regressão, Clusterização)
+    "seaborn",        // Gráficos estatísticos mais bonitos e complexos
+    "openpyxl"        // Leitura e escrita de planilhas .xlsx originais do Excel
+]); 
+ 
                 pyodideCarregando = false; 
                 
                 const statusInd = document.getElementById('status-indicator');
