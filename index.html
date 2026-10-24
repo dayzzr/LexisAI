@@ -24,7 +24,6 @@
         .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 14px; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; }
         * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         
-        /* Guias corrigidas usando a unidade 'ch' (largura exata de um caractere) */
         .CodeMirror.show-guides .CodeMirror-line { 
             background-image: linear-gradient(to right, transparent 0, transparent calc(4ch - 1px), rgba(128, 128, 128, 0.2) 4ch); 
             background-size: 4ch 100%; 
@@ -89,7 +88,6 @@
 
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-2 pr-4 border-r border-gray-300 dark:border-gray-700">
-            <!-- Restaurado o logo original image.png -->
             <img src="image.png" alt="Lexis AI" class="w-9 h-9 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
             <button onclick="abrirInfo()" class="text-gray-400 hover:text-apple-blue transition-colors ml-1" title="Sobre o Lexis AI">
@@ -157,12 +155,14 @@
     </main>
 
     <footer class="w-full text-center py-4 text-xs text-gray-500 dark:text-gray-400 border-t border-apple-borderLight dark:border-apple-borderDark mt-auto">
-        Criado e desenvolvido por Renato Dias Ramalho.
+        Criado e desenvolvido por Renato Dias Ramalho
     </footer>
 
     <script>
         // =========================================================================
-        // 🔑 COLE SUA CHAVE API DA GROQ EXATAMENTE ENTRE AS ASPAS ABAIXO:
+        // 🔑 CHAVE API DA GROQ (A sua chave já está inserida abaixo)
+        // ATENÇÃO: Se a Groq revogar esta chave por estar num repo público, 
+        // cole a nova chave exatamente entre as aspas abaixo mantendo a mesma estrutura.
         // =========================================================================
         const minhaChaveGroq = "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"; 
         // =========================================================================
@@ -200,8 +200,8 @@
         async function consultarAgenteCodigo() {
             const apiKey = minhaChaveGroq.trim();
             
-            if (apiKey === "COLE_SUA_CHAVE_AQUI" || apiKey === "") {
-                alert("Você esqueceu de colar a sua chave na variável 'minhaChaveGroq' no código HTML!"); return;
+            if (!apiKey || apiKey === "") {
+                alert("A chave da Groq não foi encontrada no código HTML."); return;
             }
 
             const inputEl = document.getElementById("chat-input");
@@ -232,14 +232,17 @@
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
                     body: JSON.stringify({
-                        model: "llama-3.1-8b-instant", 
+                        model: "llama-3.3-70b-versatile", 
                         messages: [ { role: "system", content: promptSistema }, { role: "user", content: promptUsuario } ],
                         temperature: 0.2
                     })
                 });
 
                 document.getElementById(loadId).remove();
-                if (!response.ok) throw new Error(`Falha na API (Status ${response.status}). A chave pode estar incorreta ou revogada.`);
+                
+                if (response.status === 404) throw new Error("Falha 404: O modelo não foi encontrado nos servidores da Groq.");
+                if (response.status === 401) throw new Error("Falha 401: Sua chave foi revogada pela Groq por estar exposta em um repositório público.");
+                if (!response.ok) throw new Error(`Falha na API (Status ${response.status}).`);
 
                 const data = await response.json();
                 const respostaIA = data.choices[0].message.content;
