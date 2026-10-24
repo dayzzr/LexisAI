@@ -79,7 +79,7 @@
             <div class="p-5 text-sm space-y-4 text-gray-700 dark:text-gray-300">
                 <p><strong>Motor de Execução Local:</strong> O Lexis AI roda Python nativamente no navegador usando Pyodide (Dados) e Skulpt (Gráficos).</p>
                 <p><strong>Privacidade de Dados:</strong> O processamento de planilhas CSV é 100% contido no seu dispositivo. Nenhum dado corporativo é enviado à nuvem.</p>
-                <p><strong>Agente Groq LLM:</strong> Apenas o texto digitado na aba "Agente IA (Código)" e o conteúdo do editor são processados via API para correção de scripts.</p>
+                <p><strong>Agente LLM:</strong> Apenas o texto digitado na aba "Agente IA (Código)" e o conteúdo do editor são processados via API.</p>
             </div>
         </div>
     </div>
@@ -158,7 +158,10 @@
 
     <script>
         // =========================================================================
+        // 🔑 CONFIGURAÇÃO FIXA DA API (SEM DESCOBERTA AUTOMÁTICA)
+        // =========================================================================
         const minhaChaveGroq = "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"; 
+        const modeloGroq = "openai/gpt-oss-120b"; 
         // =========================================================================
 
         let pyodideInstance = null;
@@ -190,7 +193,7 @@
         }
         function fecharChat() { document.getElementById("chat-modal").classList.add("hidden"); }
 
-        // --- CÉREBRO 1: AGENTE DE CÓDIGO (GROQ LLM com Auto-Discovery de Modelos) ---
+        // --- CÉREBRO 1: AGENTE DE CÓDIGO (MODELO FIXADO) ---
         async function consultarAgenteCodigo() {
             const apiKey = minhaChaveGroq.trim();
             
@@ -215,44 +218,18 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             const loadId = "loading-" + Date.now();
-            chatMessages.innerHTML += `<div id="${loadId}" class="text-xs text-gray-500 ml-2">Agente validando modelos da Groq e analisando o código...</div>`;
+            chatMessages.innerHTML += `<div id="${loadId}" class="text-xs text-gray-500 ml-2">Agente analisando o código via ${modeloGroq}...</div>`;
             chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // 1. Descoberta Dinâmica de Modelos (Evita Erro 404 para sempre)
-            let modeloAtivo = "llama3-8b-8192"; // Fallback apenas para uso interno
-            try {
-                const reqModelos = await fetch("https://api.groq.com/openai/v1/models", {
-                    method: "GET",
-                    headers: { "Authorization": `Bearer ${apiKey}` }
-                });
-                
-                if (reqModelos.ok) {
-                    const dadosModelos = await reqModelos.json();
-                    const listaModelos = dadosModelos.data.map(m => m.id);
-                    
-                    // Procura o modelo ideal disponível na sua conta exata
-                    const modeloPreferido = listaModelos.find(m => m.includes("llama") && !m.includes("vision")) 
-                                         || listaModelos.find(m => m.includes("gemma")) 
-                                         || listaModelos.find(m => m.includes("mixtral")) 
-                                         || listaModelos[0];
-                    if (modeloPreferido) {
-                        modeloAtivo = modeloPreferido;
-                    }
-                }
-            } catch(e) {
-                console.warn("Falha na API de modelos. Tentando modelo padrão.", e);
-            }
 
             const promptSistema = "Você é o Agente Lexis AI, especialista em Python e Data Science. Ajude o usuário com o código atual do editor.";
             const promptUsuario = `Dúvida: ${duvida}\n\nCódigo atual:\n\`\`\`python\n${codigoAtual}\n\`\`\``;
 
-            // 2. Requisição do Chatbot
             try {
                 const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
                     body: JSON.stringify({
-                        model: modeloAtivo, 
+                        model: modeloGroq, 
                         messages: [ { role: "system", content: promptSistema }, { role: "user", content: promptUsuario } ],
                         temperature: 0.2
                     })
@@ -260,7 +237,7 @@
 
                 document.getElementById(loadId).remove();
                 
-                if (!response.ok) throw new Error(`Falha na API da Groq (Status ${response.status}). Sua chave não tem acesso ou expirou.`);
+                if (!response.ok) throw new Error(`Falha na API da Groq (Status ${response.status}). Sua chave pode estar revogada ou o modelo está incorreto.`);
 
                 const data = await response.json();
                 const respostaIA = data.choices[0].message.content;
@@ -268,7 +245,7 @@
                 chatMessages.innerHTML += `
                     <div class="flex justify-start">
                         <div class="bg-gray-100 dark:bg-[#1E1E1E] border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 p-4 rounded-xl max-w-[95%] text-sm shadow-sm overflow-x-auto">
-                            <strong>🤖 Agente IA (via ${modeloAtivo}):</strong><br><br>${respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')}
+                            <strong>🤖 Agente IA (${modeloGroq}):</strong><br><br>${respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')}
                         </div>
                     </div>`;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
