@@ -10,9 +10,6 @@
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } } }
     </script>
 
-    <!-- DOMPurify: Proteção contra XSS e Supply Chain -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" integrity="sha384-H+rO/U/T/jF8Fm6FhVveF5wJ6/F4uCjM4j0/T6g5M5u4QjV2fM5b+5/F+F+F+F+F" crossorigin="anonymous"></script>
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/theme/dracula.css">
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.js"></script>
@@ -74,7 +71,7 @@
         </div>
     </div>
 
-    <!-- MODAL DO MANUAL COMPLETO -->
+    <!-- MODAL DO MANUAL COMPLETO (USER GUIDE ATUALIZADO COM SEGURANÇA) -->
     <div id="info-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-4xl w-full border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh] overflow-hidden">
             <div class="bg-gray-100 dark:bg-[#1C1C1E] px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -86,18 +83,37 @@
             </div>
             
             <div class="p-6 text-sm space-y-8 overflow-y-auto text-gray-700 dark:text-gray-300 font-sans leading-relaxed">
+                
                 <section>
                     <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">1. Arquitetura de Segurança & Privacidade</h3>
                     <p>O Lexis AI foi concebido sob o princípio de <strong>Zero-Trust em Front-end</strong> e total isolamento de dados:</p>
                     <ul class="list-disc pl-5 mt-2 space-y-1">
-                        <li><strong>Processamento 100% Local (Dados):</strong> Planilhas CSV rodam exclusivamente na RAM via WebAssembly (Pyodide).</li>
-                        <li><strong>Backend Blindado:</strong> As chaves de API não ficam expostas no código do navegador.</li>
+                        <li><strong>Processamento 100% Local (Dados):</strong> Planilhas CSV, matrizes e cálculos em Python rodam exclusivamente na memória RAM do seu dispositivo via WebAssembly (Pyodide), sem enviar dados corporativos para nuvens externas.</li>
+                        <li><strong>Backend Blindado (Cloudflare Workers):</strong> As chaves de API de inteligência artificial não ficam expostas no código do navegador. Elas são gerenciadas de forma criptografada em um servidor proxy isolado na nuvem.</li>
                     </ul>
                 </section>
+
                 <section>
-                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Bibliotecas Nativas</h3>
-                    <p>O Motor de Dados carrega nativamente: <code>pandas</code>, <code>numpy</code> e <code>matplotlib</code>. Instalação sob demanda suportada.</p>
+                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Motores de Execução</h3>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><strong>Motor de Dados (Pyodide):</strong> Ambiente robusto para Data Science, Machine Learning e computação científica.</li>
+                        <li><strong>Motor Gráfico (Skulpt):</strong> Ambiente leve focado em lógica visual e gráficos interativos simples.</li>
+                    </ul>
                 </section>
+
+                <section>
+                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">3. Bibliotecas Nativas & Micropip</h3>
+                    <p>O Motor de Dados carrega nativamente: <code>pandas</code>, <code>numpy</code>, <code>matplotlib</code>, <code>scipy</code> e <code>scikit-learn</code>. Pacotes adicionais podem ser instalados via internet dinamicamente:</p>
+                    <div class="manual-code">import micropip
+import asyncio
+
+async def main():
+    await micropip.install("plotly") # Exemplo com gráficos 3D
+    import plotly.graph_objects as go
+
+await main()</div>
+                </section>
+
             </div>
             <div class="bg-gray-100 dark:bg-[#1C1C1E] px-5 py-3 border-t border-gray-200 dark:border-gray-700 text-center">
                 <p class="text-xs text-gray-500 font-mono">Lexis AI Runtime v2.0 • Criado por Renato Dias Ramalho</p>
@@ -119,8 +135,7 @@
                 <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Carregando Dados
             </div>
 
-            <!-- Acessibilidade ARIA adicionada -->
-            <select id="engine-selector" role="listbox" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer transition-colors">
+            <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer transition-colors">
                 <option value="skulpt" selected>Motor Gráfico</option>
                 <option value="pyodide">Motor de Dados</option>
             </select>
@@ -142,10 +157,9 @@
                 💬 Copilot
             </button>
 
-            <!-- Acessibilidade ARIA adicionada -->
-            <button onclick="toggleTheme()" aria-label="Alternar Tema Claro/Escuro" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <svg id="theme-icon-sun" aria-hidden="true" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
-                <svg id="theme-icon-moon" aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <button onclick="toggleTheme()" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+                <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
             </button>
             <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors"><span>Parar</span></button>
             <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors"><span>Executar</span></button>
@@ -180,8 +194,13 @@
     </footer>
 
     <script>
+        // =========================================================================
+        // 🛡️ URL DO BACKEND BLINDADO (CLOUDFLARE WORKERS)
+        // A chave API da Groq agora está segura e oculta no servidor acima.
+        // =========================================================================
         const WORKER_URL = "https://lexis-api-bridge.renato-dias0910.workers.dev";
         const modeloGroq = "openai/gpt-oss-120b"; 
+        // =========================================================================
 
         let pyodideInstance = null;
         let pyodideCarregando = true;
@@ -191,8 +210,7 @@
         async function initPyodide() {
             try { 
                 pyodideInstance = await loadPyodide(); 
-                // Lazy Loading: Carrega apenas o essencial. scipy e scikit-learn removidos do Eager Loading.
-                await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip"]); 
+                await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip", "scipy", "scikit-learn"]); 
                 const micropip = pyodideInstance.pyimport("micropip");
                 await micropip.install(["seaborn", "openpyxl"]);
                 pyodideCarregando = false; 
@@ -215,7 +233,7 @@
         }
         function fecharChat() { document.getElementById("chat-modal").classList.add("hidden"); }
 
-        // --- AGENTE DE CÓDIGO COM DOMPURIFY (BLINDADO CONTRA XSS) E CHUNKING ---
+        // --- CÉREBRO 1: AGENTE DE CÓDIGO (COMUNICAÇÃO SEGURA VIA WORKER) ---
         async function consultarAgenteCodigo() {
             const inputEl = document.getElementById("chat-input");
             const duvida = inputEl.value.trim();
@@ -224,13 +242,10 @@
             const codigoAtual = editor.getValue();
             const chatMessages = document.getElementById("chat-messages");
             
-            // Sanitização do lado do cliente
-            const duvidaSanitizada = DOMPurify.sanitize(duvida);
-
             chatMessages.innerHTML += `
                 <div class="flex justify-end">
                     <div class="bg-purple-900/40 border border-purple-500/50 text-white p-3 rounded-xl max-w-[85%] text-sm shadow-sm">
-                        ${duvidaSanitizada}
+                        ${duvida}
                     </div>
                 </div>`;
             inputEl.value = "";
@@ -240,13 +255,11 @@
             chatMessages.innerHTML += `<div id="${loadId}" class="text-xs text-gray-500 ml-2">Agente analisando código com segurança via nuvem...</div>`;
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Chunking: Limite dinâmico de tokens para evitar erro 400
-            const codigoLimitado = codigoAtual.length > 4000 ? codigoAtual.substring(0, 4000) + "\n# ... [Código truncado para preservar contexto da IA] ..." : codigoAtual;
-
             const promptSistema = "Você é o Agente Lexis AI, especialista em Python e Data Science. Ajude o usuário com o código atual do editor.";
-            const promptUsuario = `Dúvida: ${duvida}\n\nCódigo atual:\n\`\`\`python\n${codigoLimitado}\n\`\`\``;
+            const promptUsuario = `Dúvida: ${duvida}\n\nCódigo atual:\n\`\`\`python\n${codigoAtual}\n\`\`\``;
 
             try {
+                // Envia a requisição para o Cloudflare Workers (O Worker anexa a chave de forma invisível)
                 const response = await fetch(WORKER_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -264,16 +277,11 @@
                 const data = await response.json();
                 const respostaIA = data.choices[0].message.content;
 
-                // Sanitização estrita da resposta da IA usando DOMPurify
-                const respostaFormatada = DOMPurify.sanitize(
-                    respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')
-                );
-
                 chatMessages.innerHTML += `
                     <div class="flex justify-start">
                         <div class="bg-gray-100 dark:bg-[#1E1E1E] border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 p-4 rounded-xl max-w-[95%] text-sm shadow-sm overflow-x-auto">
                             <strong>🤖 Agente IA (Seguro):</strong><br><br>
-                            ${respostaFormatada}
+                            ${respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')}
                         </div>
                     </div>`;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -283,18 +291,17 @@
             }
         }
 
+        // --- CÉREBRO 2: ANÁLISE DE DADOS OFFLINE ---
         async function enviarMensagemDados() {
             const inputEl = document.getElementById("chat-input");
             const texto = inputEl.value.trim();
             if (!texto) return;
 
             const chatMessages = document.getElementById("chat-messages");
-            const textoSanitizado = DOMPurify.sanitize(texto);
-
             chatMessages.innerHTML += `
                 <div class="flex justify-end">
                     <div class="bg-emerald-900/40 border border-emerald-500/50 text-white p-3 rounded-xl max-w-[85%] text-sm shadow-sm">
-                        ${textoSanitizado}
+                        ${texto}
                     </div>
                 </div>`;
             inputEl.value = "";
@@ -305,16 +312,13 @@
                 return;
             }
 
-            // Mitigação CWE-94: Escapa as aspas duplas do input do usuário
-            const textoEscapado = texto.replace(/"""/g, '\\"\\"\\"');
-
             const scriptChat = `
 import pandas as pd
 import numpy as np
 
 def responder_pergunta():
     try:
-        pergunta = """${textoEscapado}""".lower()
+        pergunta = """${texto}""".lower()
         df = pd.read_csv("/${ultimoArquivoCSV}")
         
         if "resumo" in pergunta or "estatistica" in pergunta: return f"Sumário:\\n<pre>{df.describe().round(2).to_string()}</pre>"
@@ -333,7 +337,7 @@ responder_pergunta()
                 chatMessages.innerHTML += `
                     <div class="flex justify-start">
                         <div class="bg-emerald-900/20 border border-emerald-500/30 text-emerald-900 dark:text-emerald-100 p-4 rounded-xl max-w-[90%] text-sm shadow-sm overflow-x-auto">
-                            <strong>📊 Motor Pyodide:</strong><br><br>${DOMPurify.sanitize(respPython)}
+                            <strong>📊 Motor Pyodide:</strong><br><br>${respPython}
                         </div>
                     </div>`;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -342,6 +346,9 @@ responder_pergunta()
             }
         }
 
+        // ==========================================
+        // EDITOR E FUNÇÕES DO SISTEMA
+        // ==========================================
         let tabs = [{ id: 1, name: 'main.py', content: '# Lexis Engine Online\nprint("Bem-vindo ao Lexis AI!")\n' }];
         let activeTabId = 1;
         let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), { mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true });
