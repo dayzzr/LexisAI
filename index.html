@@ -1,78 +1,429 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark"> <!-- O Tailwind lerá a preferência do sistema, mas iniciamos com fallback dark -->
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lexis AI - Enterprise Data Studio</title>
-    
-    <!-- CSP: Bloqueia execução de scripts não confiáveis e ativa Trusted Types -->
-    <meta http-equiv="Content-Security-Policy" content="require-trusted-types-for 'script';">
+    <title>Lexis AI — Enterprise Data Studio</title>
 
-    <!-- Tailwind CSS (Substituir no futuro por build estático, mantido via CDN para agilidade atual) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } } }
+    </script>
 
-    <!-- DOMPurify para Sanitização de HTML -->
+    <!-- DOMPurify para Sanitização de Segurança contra XSS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" 
             integrity="sha384-H+rO/U/T/jF8Fm6FhVveF5wJ6/F4uCjM4j0/T6g5M5u4QjV2fM5b+5/F+F+F+F+F" 
             crossorigin="anonymous"></script>
 
-    <!-- CodeMirror (Editor) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col h-screen transition-colors duration-200">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/theme/dracula.css">
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/lib/codemirror.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/mode/python/python.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.13/addon/edit/closebrackets.js"></script>
 
-    <header class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 shadow-md">
-        <h1 class="text-xl font-bold">Lexis AI</h1>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
+    <style>
+        .CodeMirror { position: absolute; top: 0; bottom: 0; left: 0; right: 0; height: 100%; font-family: 'SF Mono', monospace; font-size: 14px; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; }
+        * { transition: background-color 0.3s ease, border-color 0.3s ease; }
         
-        <div class="flex items-center gap-4">
-            <!-- Select com acessibilidade corrigida -->
-            <select id="engine-selector" role="listbox" class="bg-gray-200 dark:bg-gray-700 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="pyodide">Motor de Dados (Pyodide)</option>
-                <option value="skulpt">Motor Gráfico (Skulpt)</option>
+        .CodeMirror.show-guides .CodeMirror-line { 
+            background-image: linear-gradient(to right, transparent 0, transparent calc(4ch - 1px), rgba(128, 128, 128, 0.2) 4ch); 
+            background-size: 4ch 100%; 
+            background-repeat: repeat-y; 
+            background-position: 0 0; 
+        }
+        
+        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; }
+        #chat-messages pre, .manual-code { white-space: pre-wrap; font-family: 'SF Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-top: 5px; overflow-x: auto;}
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #888; }
+        .CodeMirror-vscrollbar, .CodeMirror-hscrollbar { outline: none; }
+    </style>
+</head>
+<body class="bg-apple-bgLight text-gray-900 dark:bg-apple-bgDark dark:text-gray-100 min-h-[100dvh] flex flex-col">
+    
+    <!-- MODAL DO CHATBOT UNIFICADO -->
+    <div id="chat-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-200 dark:border-gray-700 flex flex-col h-[600px] overflow-hidden">
+            <div class="bg-gray-100 dark:bg-[#1C1C1E] px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></span>
+                    <h2 class="font-bold text-sm">Lexis AI Copilot (Dados & Código)</h2>
+                </div>
+                <button onclick="fecharChat()" class="text-gray-400 hover:text-white font-bold text-sm transition-colors">✕</button>
+            </div>
+            
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-sm">
+                <div class="bg-blue-900/30 text-blue-100 p-4 rounded-xl border border-blue-700/50">
+                    <strong>Bem-vindo ao Copilot Unificado!</strong><br><br>
+                    • Use o botão <strong>Processar Dados</strong> para analisar CSVs localmente (Offline).<br>
+                    • Use o botão <strong>Agente IA (Código)</strong> para a IA ler o seu editor e resolver problemas com segurança em nuvem.
+                </div>
+            </div>
+
+            <div class="p-3 bg-gray-50 dark:bg-[#1C1C1E] border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
+                <input type="text" id="chat-input" placeholder="Digite seu comando analítico ou dúvida de código..." class="w-full bg-white dark:bg-[#2C2C2E] border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500 transition-colors" onkeypress="if(event.key === 'Enter') consultarAgenteCodigo()">
+                <div class="flex gap-2">
+                    <button onclick="enviarMensagemDados()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-semibold text-xs shadow-sm transition-colors">Processar Dados (Offline)</button>
+                    <button onclick="consultarAgenteCodigo()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-2.5 rounded-xl font-semibold text-xs shadow-sm transition-colors">🤖 Agente IA (Código)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DO MANUAL COMPLETO -->
+    <div id="info-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[999] hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl max-w-4xl w-full border border-gray-200 dark:border-gray-700 flex flex-col max-h-[85vh] overflow-hidden">
+            <div class="bg-gray-100 dark:bg-[#1C1C1E] px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-apple-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    <h2 class="font-bold text-lg">Documentação Oficial & Segurança Lexis AI</h2>
+                </div>
+                <button onclick="fecharInfo()" class="text-gray-400 hover:text-red-500 font-bold text-lg transition-colors">✕</button>
+            </div>
+            
+            <div class="p-6 text-sm space-y-8 overflow-y-auto text-gray-700 dark:text-gray-300 font-sans leading-relaxed">
+                <section>
+                    <h3 class="text-lg font-bold text-apple-blue mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">1. Arquitetura de Segurança & Privacidade</h3>
+                    <p>O Lexis AI opera sob o princípio de <strong>Zero-Trust em Front-end</strong>:</p>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><strong>Processamento 100% Local (Dados):</strong> Planilhas CSV rodam na RAM via WebAssembly (Pyodide).</li>
+                        <li><strong>Backend Blindado (Cloudflare Workers):</strong> Chaves de API protegidas em proxy seguro.</li>
+                    </ul>
+                </section>
+            </div>
+            <div class="bg-gray-100 dark:bg-[#1C1C1E] px-5 py-3 border-t border-gray-200 dark:border-gray-700 text-center">
+                <p class="text-xs text-gray-500 font-mono">Lexis AI Runtime v2.0 • Criado por Renato Dias Ramalho</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
+        <div class="flex items-center gap-2 pr-4 border-r border-gray-300 dark:border-gray-700">
+            <img src="image.png" alt="Lexis AI" class="w-9 h-9 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
+            <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
+            <button onclick="abrirInfo()" class="text-gray-400 hover:text-apple-blue transition-colors ml-1 flex items-center justify-center p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800" title="Manual e Documentação">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <div id="status-indicator" class="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Carregando Dados
+            </div>
+
+            <select id="engine-selector" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-apple-blue font-semibold px-4 py-2.5 pr-8 rounded-xl text-sm shadow-sm outline-none cursor-pointer transition-colors">
+                <option value="skulpt" selected>Motor Gráfico</option>
+                <option value="pyodide">Motor de Dados</option>
             </select>
             
-            <!-- Botão de tema com Aria-Label -->
-            <button id="theme-toggle" aria-label="Alternar Tema Claro/Escuro" class="p-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                <svg id="theme-icon-sun" aria-hidden="true" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 3.22a1 1 0 011.415 0l.708.707a1 1 0 01-1.414 1.415l-.708-.708a1 1 0 010-1.414zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM14.22 15.78a1 1 0 010 1.415l-.708.707a1 1 0 11-1.414-1.414l.708-.708a1 1 0 011.414 0zM10 18a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-3.22a1 1 0 01-1.415 0l-.708-.707a1 1 0 111.414-1.415l.708.708a1 1 0 010 1.414zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm3.22-4.22a1 1 0 010-1.415l-.708-.707a1 1 0 011.414-1.414l.708.708a1 1 0 01-1.414 1.415zM10 4a6 6 0 100 12 6 6 0 000-12z" clip-rule="evenodd"></path>
-                </svg>
-                <svg id="theme-icon-moon" aria-hidden="true" class="w-5 h-5 block" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
+            <button onclick="salvarScript()" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors">
+                Salvar .py
             </button>
+
+            <label for="file-upload" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm cursor-pointer shadow-sm active:scale-95 flex items-center gap-2 transition-colors">
+                Anexar Arquivo
+            </label>
+            <input id="file-upload" type="file" class="hidden" onchange="importarArquivoInteligente(event)" />
+            
+            <button onclick="toggleGuides()" id="btn-guides" class="bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3A3C] dark:hover:bg-[#48484A] text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors">
+                Guias
+            </button>
+
+            <button onclick="abrirChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-emerald-400 transition-colors">
+                💬 Copilot
+            </button>
+
+            <button onclick="toggleTheme()" class="p-2 mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg id="theme-icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m3.343-5.657l-.707-.707m12.728 12.728l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+                <svg id="theme-icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
+            <button onclick="stopExecution()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors"><span>Parar</span></button>
+            <button onclick="runPython()" class="bg-apple-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 transition-colors"><span>Executar</span></button>
         </div>
     </header>
 
-    <main class="flex flex-col lg:flex-row flex-1 overflow-hidden p-4 gap-4">
-        <!-- Editor de Código -->
-        <section class="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded shadow-md overflow-hidden">
-            <div class="p-2 bg-gray-200 dark:bg-gray-700 font-mono text-sm flex justify-between items-center">
-                <span>IDE</span>
-                <button id="run-code-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Executar (Shift+Enter)</button>
-            </div>
-            <div id="editor-container" class="flex-1 overflow-hidden"></div>
-        </section>
-
-        <!-- Terminal e IA -->
-        <section class="flex-1 flex flex-col gap-4">
-            <div class="flex-1 bg-black text-green-400 font-mono text-sm p-4 rounded shadow-md overflow-y-auto" id="terminal-output">
-                > Sistema Inicializado...
-            </div>
-            
-            <div class="flex flex-col bg-white dark:bg-gray-800 p-4 rounded shadow-md h-1/2">
-                <div id="chat-messages" class="flex-1 overflow-y-auto mb-4 p-2 border border-gray-300 dark:border-gray-600 rounded"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="chat-input" class="flex-1 p-2 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none" placeholder="Pergunte ao Copilot IA...">
-                    <button id="send-chat-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Enviar</button>
+    <main class="flex-1 w-full max-w-screen-2xl mx-auto p-4 flex flex-col lg:flex-row gap-5 mb-2">
+        <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-white dark:bg-apple-surfaceDark rounded-2xl border border-apple-borderLight dark:border-apple-borderDark shadow-md">
+            <div class="bg-gray-100 dark:bg-[#222224] px-3 pt-2 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between rounded-t-2xl">
+                <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto"></div>
+                <div class="flex items-center gap-2 pb-1 shrink-0">
+                    <button onclick="addNewTab()" class="p-1.5 text-gray-500 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-300 text-xs font-semibold transition-colors">+ Novo</button>
+                    <button onclick="clearEditor()" class="p-1.5 text-red-500 hover:bg-gray-300 text-xs font-semibold transition-colors">Limpar</button>
                 </div>
+            </div>
+            <div id="editor-wrapper" class="flex-1 relative overflow-hidden rounded-b-2xl"><textarea id="code-editor"></textarea></div>
+        </section>
+        <section class="flex-1 flex flex-col min-h-[400px] h-[50vh] lg:h-auto bg-[#1E1E1E] rounded-2xl border border-apple-borderDark shadow-md">
+            <div class="bg-[#2D2D2D] px-4 py-3 border-b border-[#3E3E3E] flex items-center justify-between rounded-t-2xl">
+                <span class="text-sm font-mono text-gray-400 uppercase tracking-wider">Terminal / Output</span>
+                <button onclick="clearConsole()" class="text-sm text-gray-400 hover:text-white transition-colors">Limpar</button>
+            </div>
+            <div class="flex-1 relative flex flex-col bg-[#1E1E1E] rounded-b-2xl overflow-hidden">
+                <div id="output" class="flex-1 p-4 font-mono text-[14px] text-gray-300 overflow-y-auto whitespace-pre-wrap leading-relaxed pb-6">Lexis AI Runtime Environment iniciado.</div>
+                <div id="turtle-container" class="hidden h-[50%] min-h-[250px] bg-white border-t border-gray-600 flex items-center justify-center p-2 relative"><div id="mycanvas"></div></div>
             </div>
         </section>
     </main>
 
-    <!-- Orquestrador Modular ES6 -->
-    <script type="module" src="./js/main.js"></script>
+    <footer class="w-full text-center py-4 text-xs text-gray-500 dark:text-gray-400 border-t border-apple-borderLight dark:border-apple-borderDark mt-auto">
+        Criado e desenvolvido por Renato Dias Ramalho
+    </footer>
+
+    <script>
+        const WORKER_URL = "https://lexis-api-bridge.renato-dias0910.workers.dev";
+        const modeloGroq = "openai/gpt-oss-120b"; 
+
+        let pyodideInstance = null;
+        let pyodideCarregando = true;
+        let ultimoArquivoCSV = ""; 
+        function outf(text) { let output = document.getElementById("output"); output.innerHTML += text; output.scrollTop = output.scrollHeight; }
+        
+        async function initPyodide() {
+            try { 
+                pyodideInstance = await loadPyodide(); 
+                await pyodideInstance.loadPackage(["pandas", "numpy", "matplotlib", "micropip", "scipy", "scikit-learn"]); 
+                const micropip = pyodideInstance.pyimport("micropip");
+                await micropip.install(["seaborn", "openpyxl"]);
+                pyodideCarregando = false; 
+                
+                const statusInd = document.getElementById('status-indicator');
+                statusInd.className = "flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 transition-colors";
+                statusInd.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span> Motor de Dados Pronto`;
+            } catch (err) { 
+                outf("\nErro de Sistema: " + err); 
+            }
+        }
+        initPyodide();
+
+        function abrirInfo() { document.getElementById("info-modal").classList.remove("hidden"); }
+        function fecharInfo() { document.getElementById("info-modal").classList.add("hidden"); }
+        
+        function abrirChat() {
+            document.getElementById("chat-modal").classList.remove("hidden");
+            document.getElementById("chat-input").focus();
+        }
+        function fecharChat() { document.getElementById("chat-modal").classList.add("hidden"); }
+
+        // --- AGENTE DE CÓDIGO COM DOMPURIFY (BLINDADO CONTRA XSS) ---
+        async function consultarAgenteCodigo() {
+            const inputEl = document.getElementById("chat-input");
+            const duvida = inputEl.value.trim();
+            if (!duvida) return;
+
+            const codigoAtual = editor.getValue();
+            const chatMessages = document.getElementById("chat-messages");
+            
+            // Sanitiza o input do usuário para evitar injeção
+            const duvidaSanitizada = DOMPurify.sanitize(duvida);
+
+            chatMessages.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-purple-900/40 border border-purple-500/50 text-white p-3 rounded-xl max-w-[85%] text-sm shadow-sm">
+                        ${duvidaSanitizada}
+                    </div>
+                </div>`;
+            inputEl.value = "";
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const loadId = "loading-" + Date.now();
+            chatMessages.innerHTML += `<div id="${loadId}" class="text-xs text-gray-500 ml-2">Agente analisando código com segurança via nuvem...</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const promptSistema = "Você é o Agente Lexis AI, especialista em Python e Data Science. Ajude o usuário com o código atual do editor.";
+            const promptUsuario = `Dúvida: ${duvida}\n\nCódigo atual:\n\`\`\`python\n${codigoAtual}\n\`\`\``;
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: modeloGroq, 
+                        messages: [ { role: "system", content: promptSistema }, { role: "user", content: promptUsuario } ],
+                        temperature: 0.2
+                    })
+                });
+
+                document.getElementById(loadId).remove();
+                
+                if (!response.ok) throw new Error(`Falha no Servidor Seguro (Status ${response.status}).`);
+
+                const data = await response.json();
+                const respostaIA = data.choices[0].message.content;
+
+                // Sanitização estricta da resposta da IA usando DOMPurify
+                const respostaFormatada = DOMPurify.sanitize(
+                    respostaIA.replace(/\n/g, '<br>').replace(/```python/g, '<pre class="bg-black text-green-400 p-2 rounded mt-2">').replace(/```/g, '</pre>')
+                );
+
+                chatMessages.innerHTML += `
+                    <div class="flex justify-start">
+                        <div class="bg-gray-100 dark:bg-[#1E1E1E] border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 p-4 rounded-xl max-w-[95%] text-sm shadow-sm overflow-x-auto">
+                            <strong>🤖 Agente IA (Seguro):</strong><br><br>
+                            ${respostaFormatada}
+                        </div>
+                    </div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (err) {
+                if(document.getElementById(loadId)) document.getElementById(loadId).remove();
+                chatMessages.innerHTML += `<div class="bg-red-900/20 text-red-400 p-3 rounded-xl max-w-[85%]">Erro: ${err.message}</div>`;
+            }
+        }
+
+        async function enviarMensagemDados() {
+            const inputEl = document.getElementById("chat-input");
+            const texto = inputEl.value.trim();
+            if (!texto) return;
+
+            const chatMessages = document.getElementById("chat-messages");
+            const textoSanitizado = DOMPurify.sanitize(texto);
+
+            chatMessages.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-emerald-900/40 border border-emerald-500/50 text-white p-3 rounded-xl max-w-[85%] text-sm shadow-sm">
+                        ${textoSanitizado}
+                    </div>
+                </div>`;
+            inputEl.value = "";
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (!ultimoArquivoCSV) {
+                chatMessages.innerHTML += `<div class="bg-red-900/20 text-red-400 p-3 rounded-xl max-w-[85%]">Aviso: Anexe um arquivo CSV primeiro para analisar dados localmente.</div>`;
+                return;
+            }
+
+            const scriptChat = `
+import pandas as pd
+import numpy as np
+
+def responder_pergunta():
+    try:
+        pergunta = """${texto}""".lower()
+        df = pd.read_csv("/${ultimoArquivoCSV}")
+        
+        if "resumo" in pergunta or "estatistica" in pergunta: return f"Sumário:\\n<pre>{df.describe().round(2).to_string()}</pre>"
+        if "nulo" in pergunta or "vazio" in pergunta: 
+            nulos = df.isnull().sum()
+            return f"Dados faltantes:\\n<pre>{nulos[nulos > 0].to_string()}</pre>" if not nulos[nulos > 0].empty else "Base perfeitamente preenchida."
+        if "linha" in pergunta or "tamanho" in pergunta: return f"Base com **{len(df):,} linhas** e **{len(df.columns)} colunas**."
+        
+        return "Comando de dados não listado. Tente: resumo, nulos, ou tamanho da base."
+    except Exception as e:
+        return f"Erro interno: {str(e)}"
+responder_pergunta()
+`;
+            try {
+                let respPython = await pyodideInstance.runPythonAsync(scriptChat);
+                chatMessages.innerHTML += `
+                    <div class="flex justify-start">
+                        <div class="bg-emerald-900/20 border border-emerald-500/30 text-emerald-900 dark:text-emerald-100 p-4 rounded-xl max-w-[90%] text-sm shadow-sm overflow-x-auto">
+                            <strong>📊 Motor Pyodide:</strong><br><br>${DOMPurify.sanitize(respPython)}
+                        </div>
+                    </div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (err) {
+                chatMessages.innerHTML += `<div class="bg-red-900/20 text-red-400 p-3 rounded-xl max-w-[85%]">Falha local: ${err}</div>`;
+            }
+        }
+
+        let tabs = [{ id: 1, name: 'main.py', content: '# Lexis Engine Online\nprint("Bem-vindo ao Lexis AI!")\n' }];
+        let activeTabId = 1;
+        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), { mode: "python", theme: "dracula", lineNumbers: true, autoCloseBrackets: true, tabSize: 4, indentUnit: 4, lineWrapping: true });
+        
+        let timeoutEditor;
+        editor.on("change", function() { 
+            clearTimeout(timeoutEditor);
+            timeoutEditor = setTimeout(() => {
+                let current = tabs.find(t => t.id === activeTabId); 
+                if (current) current.content = editor.getValue(); 
+            }, 300);
+        });
+
+        function salvarScript() {
+            const codigo = editor.getValue();
+            const blob = new Blob([codigo], { type: "text/plain;charset=utf-8" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            const abaAtual = tabs.find(t => t.id === activeTabId);
+            link.download = abaAtual ? abaAtual.name : "script.py";
+            link.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function importarArquivoInteligente(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const extensao = file.name.split('.').pop().toLowerCase(); const reader = new FileReader();
+            if (extensao === 'csv') {
+                if (pyodideCarregando) { outf("\nInfo: Aguarde o motor carregar...\n"); return; }
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result); pyodideInstance.FS.writeFile("/" + file.name, data);
+                    ultimoArquivoCSV = file.name; 
+                    outf(`\n[SUCESSO] Arquivo '${file.name}' carregado na RAM.\n`);
+                }; reader.readAsArrayBuffer(file);
+            } else { reader.onload = function(e) { editor.setValue(e.target.result); }; reader.readAsText(file); }
+            event.target.value = ''; 
+        }
+
+        function clearConsole() { 
+            document.getElementById("output").innerHTML = "Lexis AI Runtime Environment iniciado.\n"; 
+            document.getElementById("turtle-container").classList.add("hidden"); 
+            document.getElementById("mycanvas").innerHTML = ""; 
+            if (typeof Sk !== 'undefined' && Sk.TurtleGraphics) {
+                Sk.TurtleGraphics.reset(); 
+            }
+        }
+
+        function runPython() {
+            let prog = editor.getValue(); 
+            let output = document.getElementById("output"); 
+            let turtleBox = document.getElementById("turtle-container"); 
+            let motor = document.getElementById("engine-selector").value;
+            
+            output.innerHTML = "Executando script...\n"; 
+            
+            document.getElementById("mycanvas").innerHTML = ""; 
+            if (typeof Sk !== 'undefined' && Sk.TurtleGraphics) { Sk.TurtleGraphics.reset(); }
+
+            if (motor === "skulpt") {
+                turtleBox.classList.remove("hidden");
+                Sk.TurtleGraphics = Sk.TurtleGraphics || {}; 
+                Sk.TurtleGraphics.target = 'mycanvas'; 
+                Sk.pre = "output";
+                Sk.configure({ output: outf, read: function(x) { return Sk.builtinFiles["files"][x]; } });
+                
+                Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true)).catch((err) => {
+                    let erroStr = err.toString();
+                    if (erroStr.includes("ImportError") && (erroStr.includes("pandas") || erroStr.includes("numpy") || erroStr.includes("matplotlib"))) {
+                        outf("\n⚠️ ALERTA: Mude o seletor no topo para 'Motor de Dados'.\n");
+                    } else { outf("\nErro: " + erroStr); }
+                });
+            } else if (motor === "pyodide") { 
+                turtleBox.classList.add("hidden"); 
+                if (pyodideCarregando) { outf("\nAviso: Aguarde o indicador ficar verde.\n"); return; }
+                pyodideInstance.setStdout({ batched: (str) => outf(str + "\n") }); 
+                pyodideInstance.runPythonAsync(prog).catch((err) => outf("\nErro Python:\n" + err)); 
+            }
+        }
+
+        let guidesVisible = false;
+        function toggleGuides() { guidesVisible = !guidesVisible; document.querySelector(".CodeMirror").classList.toggle("show-guides", guidesVisible); document.getElementById("btn-guides").style.color = guidesVisible ? "#007AFF" : ""; }
+        function renderTabs() {
+            const container = document.getElementById('tabs-container'); container.innerHTML = '';
+            tabs.forEach(tab => { let isActive = tab.id === activeTabId; let tabEl = document.createElement('div'); tabEl.className = `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg cursor-pointer border-t border-x ${isActive ? 'bg-white dark:bg-apple-surfaceDark text-apple-blue border-apple-borderLight dark:border-apple-borderDark' : 'text-gray-500 hover:text-gray-800'} transition-colors`; tabEl.innerHTML = `<span onclick="switchTab(${tab.id})">${tab.name}</span>`; container.appendChild(tabEl); });
+        }
+        function switchTab(id) { activeTabId = id; editor.setValue(tabs.find(t => t.id === id).content); renderTabs(); }
+        function addNewTab() { let newId = Date.now(); tabs.push({ id: newId, name: `script_${tabs.length + 1}.py`, content: '' }); switchTab(newId); }
+        function clearEditor() { if (confirm("Limpar código?")) editor.setValue(""); }
+        function insertCode(text) { editor.replaceRange(text, editor.getCursor()); editor.focus(); }
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); document.getElementById('theme-icon-sun').classList.toggle('hidden'); document.getElementById('theme-icon-moon').classList.toggle('hidden'); }
+        function stopExecution() { document.getElementById("output").innerHTML += "\n\nProcesso interrompido."; document.getElementById("mycanvas").innerHTML = ""; if (typeof Sk !== 'undefined' && Sk.TurtleGraphics) { Sk.TurtleGraphics.reset(); } }
+        renderTabs();
+    </script>
 </body>
 </html>
