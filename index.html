@@ -10,7 +10,7 @@
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { apple: { bgLight: '#F2F2F7', bgDark: '#1C1C1E', surfaceLight: '#FFFFFF', surfaceDark: '#2C2C2E', borderLight: '#E5E5EA', borderDark: '#38383A', blue: '#007AFF', darkBlue: '#0A84FF' } } } } }
     </script>
 
-    <!-- Metadados de Atalho, Home Screen e Manifesto PWA -->
+    <!-- Metadados PWA e Atalhos -->
     <link rel="icon" type="image/png" href="image.png">
     <link rel="apple-touch-icon" href="image.png">
     <link rel="manifest" href="manifest.json">
@@ -116,7 +116,8 @@
 
     <header class="bg-white/90 dark:bg-apple-surfaceDark/90 backdrop-blur-md border-b border-apple-borderLight dark:border-apple-borderDark px-4 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
         <div class="flex items-center gap-2 pr-4 border-r border-gray-300 dark:border-gray-700">
-            <img src="image.png" alt="Lexis AI" class="w-9 h-9 object-contain drop-shadow-sm rounded-lg dark:invert" onerror="this.style.display='none'">
+            <!-- Logotipo otimizado com tamanho compacto e elegante -->
+            <img src="image.png" alt="Lexis AI" class="w-8 h-8 object-contain rounded-lg drop-shadow-sm" onerror="this.style.display='none'">
             <h1 class="text-xl font-bold tracking-tight">Lexis AI</h1>
             <button onclick="abrirInfo()" class="text-gray-400 hover:text-apple-blue transition-colors ml-1 flex items-center justify-center p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800" title="Manual e Documentação">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
@@ -146,6 +147,7 @@
                 Guias
             </button>
 
+            <!-- Botão do Copilot com o símbolo da lâmpada em tamanho ideal (w-5 h-5) -->
             <button onclick="abrirChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm active:scale-95 border border-emerald-400 transition-colors">
                 <img src="lexis-copilot.png" alt="Copilot" class="w-5 h-5 object-contain"> Copilot
             </button>
@@ -199,6 +201,7 @@
     </footer>
 
     <script>
+        // URL oficial e corrigida do Cloudflare Worker para garantir comunicação total com a API
         const WORKER_URL = "https://lexis-api-bridge.renato-dias0910.workers.dev";
         const modeloGroq = "openai/gpt-oss-120b"; 
 
